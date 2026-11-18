@@ -5,6 +5,7 @@
 
   function SupabaseBackend(cfg) {
     this.demo = false;
+    this.cfg = cfg;
     this.sb = root.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
   }
   SupabaseBackend.prototype.onAuth = function (cb) { this.sb.auth.onAuthStateChange(function (ev, session) { cb(ev, session); }); };
@@ -29,6 +30,16 @@
   };
   SupabaseBackend.prototype.resetPassword = async function (email) { var r = await this.sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }); if (r.error) throw r.error; };
   SupabaseBackend.prototype.setPassword = async function (pw) { var r = await this.sb.auth.updateUser({ password: pw }); if (r.error) throw r.error; };
+  // Verify a password without disturbing the current session: try to sign in on a
+  // second, isolated Supabase client that doesn't persist its own session.
+  SupabaseBackend.prototype.verifyPassword = async function (email, password) {
+    var tmp = root.supabase.createClient(this.cfg.SUPABASE_URL, this.cfg.SUPABASE_ANON_KEY,
+      { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: 'fin-verify-only' } });
+    var r = await tmp.auth.signInWithPassword({ email: email, password: password });
+    try { await tmp.auth.signOut(); } catch (e) {}
+    if (r.error) throw r.error;
+    return true;
+  };
   SupabaseBackend.prototype.signOut = async function () { await this.sb.auth.signOut(); };
   SupabaseBackend.prototype.me = async function () {
     var s = await this.session(); if (!s) return null;
@@ -86,6 +97,8 @@
   DemoBackend.prototype.session = async function () { return { user: { id: 'demo', email: 'demo@this-browser' } }; };
   DemoBackend.prototype.me = async function () { return { id: 'demo', email: 'demo@this-browser', name: 'Demo user', role: 'admin' }; };
   DemoBackend.prototype.signOut = async function () {};
+  DemoBackend.prototype.setPassword = async function () {};
+  DemoBackend.prototype.verifyPassword = async function () { return true; };
   DemoBackend.prototype.loadCells = async function () {
     var d = this._db(), out = [];
     Object.keys(d.cells).forEach(function (k) { var i = k.indexOf('!'); out.push({ sheet: k.slice(0, i), addr: k.slice(i + 1), value: d.cells[k] }); });

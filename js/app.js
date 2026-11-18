@@ -415,6 +415,37 @@
     } catch (ex) { body.innerHTML = '<tr><td colspan="4" class="muted">' + U.esc(ex.message) + '</td></tr>'; }
   }
 
+  // ---------- Change password ----------
+  function openChangePassword() {
+    var frm = U.Form([
+      { key: 'current', label: 'Current password', type: 'password', required: true },
+      { key: 'next', label: 'New password', type: 'password', required: true, hint: 'At least 8 characters', short: true },
+      { key: 'confirm', label: 'Repeat new password', type: 'password', required: true, short: true }
+    ]);
+    U.openDrawer({
+      title: 'Change password',
+      content: frm.element,
+      buttons: [
+        { label: 'Cancel', onClick: U.closeDrawer },
+        { label: 'Change password', primary: true, onClick: async function () {
+          var v = frm.validate(); if (!v.ok) { toast(v.message, 'error'); return; }
+          var vals = frm.values();
+          if (vals.next.length < 8) { toast('Use at least 8 characters for the new password.', 'error'); return; }
+          if (vals.next !== vals.confirm) { toast('The two new passwords do not match.', 'error'); return; }
+          if (vals.next === vals.current) { toast('New password must be different from the current one.', 'error'); return; }
+          try {
+            await backend.verifyPassword(state.me.email, vals.current);
+          } catch (ex) { toast('Current password is wrong.', 'error'); return; }
+          try {
+            await backend.setPassword(vals.next);
+            U.closeDrawer();
+            toast('Password changed. Use the new password next time you sign in.', 'success');
+          } catch (ex) { toast('Could not change password: ' + ex.message, 'error'); }
+        } }
+      ]
+    });
+  }
+
   // ---------- Export ----------
   var BSTYLE = { thin: 'thin', hair: 'hair', medium: 'medium', thick: 'thick', dashed: 'dashed', dotted: 'dotted', double: 'double' };
   function argb(h) { return { argb: 'FF' + h.replace('#', '').toUpperCase() }; }
@@ -551,6 +582,7 @@
     $('#pending-refresh').onclick = function () { start(); };
     $('#pending-signout').onclick = async function () { await backend.signOut(); authView('signin'); };
     $('#menu-signout').onclick = async function (e) { e.preventDefault(); if (state.queue.size) await flush(); await backend.signOut(); location.reload(); };
+    $('#menu-password').onclick = function (e) { e.preventDefault(); $('#user-menu').hidden = true; openChangePassword(); };
     $('#user-btn').onclick = function (e) { e.stopPropagation(); $('#user-menu').hidden = !$('#user-menu').hidden; };
     document.addEventListener('click', function () { $('#user-menu').hidden = true; });
     $('#user-menu').addEventListener('click', function (e) { e.stopPropagation(); });
