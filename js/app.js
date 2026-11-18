@@ -93,9 +93,16 @@
       if (mode === 'signin') { await backend.signIn(email, pw); await start(); }
       else if (mode === 'signup') {
         if (pw.length < 8) throw new Error('Use at least 8 characters for the password.');
-        var r = await backend.signUp(email, pw, $('#auth-name').value.trim());
-        if (r.session) await start();
-        else { msg.className = 'msg ok'; msg.textContent = 'Account created. Check your email to confirm it, then sign in. An admin will then give you access.'; }
+        try {
+          var r = await backend.signUp(email, pw, $('#auth-name').value.trim());
+          if (r.session) await start();
+          else { msg.className = 'msg ok'; msg.textContent = 'Account created. Check your email to confirm it, then sign in. An admin will then give you access.'; }
+        } catch (ex) {
+          if (ex.duplicate) {
+            msg.className = 'msg err';
+            msg.innerHTML = 'An account with this email already exists. Use <a href="#" data-m="forgot">Forgot password?</a> to reset it, or ask your admin to reset it for you.';
+          } else throw ex;
+        }
       } else if (mode === 'forgot') {
         await backend.resetPassword(email);
         msg.className = 'msg ok'; msg.textContent = 'If that email has an account, a reset link is on its way.';

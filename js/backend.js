@@ -12,7 +12,20 @@
   SupabaseBackend.prototype.signIn = async function (email, password) { var r = await this.sb.auth.signInWithPassword({ email: email, password: password }); if (r.error) throw r.error; return r.data; };
   SupabaseBackend.prototype.signUp = async function (email, password, name) {
     var r = await this.sb.auth.signUp({ email: email, password: password, options: { data: { full_name: name }, emailRedirectTo: location.origin + location.pathname } });
-    if (r.error) throw r.error; return r.data;
+    if (r.error) {
+      // Supabase sometimes raises an explicit error: normalise it.
+      if (/already (registered|exists)/i.test(r.error.message || '')) {
+        var ex = new Error('duplicate'); ex.duplicate = true; throw ex;
+      }
+      throw r.error;
+    }
+    // Enumeration-safe: when "Prevent user enumeration" is on, Supabase returns
+    // an empty identities[] for an existing email and does NOT create a session.
+    // Detect that and flag it to the caller.
+    if (r.data && r.data.user && (!r.data.user.identities || r.data.user.identities.length === 0) && !r.data.session) {
+      var ex2 = new Error('duplicate'); ex2.duplicate = true; throw ex2;
+    }
+    return r.data;
   };
   SupabaseBackend.prototype.resetPassword = async function (email) { var r = await this.sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }); if (r.error) throw r.error; };
   SupabaseBackend.prototype.setPassword = async function (pw) { var r = await this.sb.auth.updateUser({ password: pw }); if (r.error) throw r.error; };
