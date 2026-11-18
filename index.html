@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Finance Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%23B71F29%22/%3E%3Ctext x=%2216%22 y=%2223%22 font-size=%2219%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Arial%22%3EC%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<!-- sign in -->
+<section id="auth" class="screen" hidden>
+  <form id="auth-form" class="card" data-mode="signin">
+    <div class="brand"><span class="mark">C</span><div><div class="b1">Cartafella Analytics</div><div class="b2">Finance Dashboard</div></div></div>
+    <h1 id="auth-title">Sign in</h1>
+    <label id="auth-name-row" hidden>Full name<input id="auth-name" autocomplete="name"></label>
+    <label id="auth-email-row">Email<input id="auth-email" type="email" autocomplete="username" required></label>
+    <label id="auth-pass-row">Password<input id="auth-pass" type="password" autocomplete="current-password"></label>
+    <label id="auth-pass2-row" hidden>Repeat new password<input id="auth-pass2" type="password" autocomplete="new-password"></label>
+    <button id="auth-submit" class="btn primary wide" type="submit">Sign in</button>
+    <p id="auth-msg" class="msg"></p>
+    <p id="auth-links" class="links"></p>
+  </form>
+</section>
+
+<!-- waiting for approval -->
+<section id="pending" class="screen" hidden>
+  <div class="card">
+    <div class="brand"><span class="mark">C</span><div><div class="b1">Cartafella Analytics</div><div class="b2">Finance Dashboard</div></div></div>
+    <h1>Waiting for access</h1>
+    <p>You are signed in as <b id="pending-email"></b>. An admin needs to give your account access before you can see the dashboard.</p>
+    <p><button id="pending-refresh" class="btn primary">Check again</button> <button id="pending-signout" class="btn">Sign out</button></p>
+  </div>
+</section>
+
+<section id="loading" class="screen"><div class="spinner"></div><p id="loading-text">Loading…</p></section>
+
+<!-- the app -->
+<section id="app" hidden>
+  <header class="top">
+    <div class="brand small"><span class="mark">C</span><span id="title">Finance Dashboard</span></div>
+    <div class="actions">
+      <button id="btn-undo" class="btn ghost" title="Undo (Ctrl+Z)">↶ Undo</button>
+      <button id="btn-find" class="btn ghost" title="Find (Ctrl+F)">Find</button>
+      <button id="btn-history" class="btn ghost">Change history</button>
+      <button id="btn-import" class="btn ghost" title="Load input data from an Excel file">Import Excel</button>
+      <button id="btn-export" class="btn ghost" title="Download all tabs as an Excel file">Download Excel</button>
+      <button id="btn-example" class="btn ghost" title="Clear the rows flagged EXAMPLE">Remove example data</button>
+      <button id="btn-users" class="btn ghost">Users</button>
+      <select id="zoom" title="Zoom"><option value="0.7">70%</option><option value="0.8">80%</option><option value="0.9">90%</option><option value="1" selected>100%</option><option value="1.1">110%</option><option value="1.25">125%</option></select>
+      <span id="status" class="status ok">All changes saved</span>
+      <span id="who" class="who"></span>
+      <button id="btn-signout" class="btn ghost">Sign out</button>
+    </div>
+  </header>
+  <div id="demo-banner" class="demo" hidden>Demo mode: Supabase is not connected yet (see js/config.js). Data is kept in this browser only.</div>
+  <div class="fbar">
+    <span id="cell-addr" class="addr"></span>
+    <span id="cell-info" class="info"></span>
+    <span id="cell-value" class="value"></span>
+    <span id="cell-last" class="last"></span>
+  </div>
+  <div id="grid"></div>
+  <footer class="tabsbar">
+    <button id="tab-prev" class="tabnav" title="Scroll tabs left">‹</button>
+    <nav id="tabs"></nav>
+    <button id="tab-next" class="tabnav" title="Scroll tabs right">›</button>
+  </footer>
+
+  <div id="find" class="find" hidden>
+    <input id="find-q" placeholder="Find on this tab…"><button id="find-next" class="btn small">Next</button><span id="find-msg" class="muted small"></span><button id="find-close" class="x" title="Close">×</button>
+  </div>
+
+  <aside id="history" class="panel" hidden>
+    <div class="panel-head"><h2>Change history</h2><button id="hist-close" class="x" title="Close">×</button></div>
+    <div class="filters">
+      <select id="hist-sheet"></select>
+      <input id="hist-addr" placeholder="Cell, e.g. H12" size="8">
+      <input id="hist-email" placeholder="User email">
+      <label>From <input id="hist-from" type="date"></label>
+      <label>To <input id="hist-to" type="date"></label>
+      <button id="hist-apply" class="btn small primary">Show</button>
+      <button id="hist-csv" class="btn small">Download CSV</button>
+    </div>
+    <div class="panel-body">
+      <table class="list"><thead><tr><th>When</th><th>Who</th><th>Cell</th><th>Action</th><th>Before</th><th>After</th><th>Note</th></tr></thead><tbody id="hist-rows"></tbody></table>
+      <p id="hist-empty" class="muted" hidden>No changes found.</p>
+      <p><button id="hist-more" class="btn small">Load more</button></p>
+    </div>
+  </aside>
+
+  <aside id="users" class="panel narrow" hidden>
+    <div class="panel-head"><h2>Users</h2><button id="users-close" class="x" title="Close">×</button></div>
+    <div class="panel-body">
+      <p class="muted">People create an account on the sign-in page; it then appears here as <b>pending</b>. Choose <b>viewer</b> (read only), <b>editor</b> (can enter data) or <b>admin</b> (can also manage users).</p>
+      <table class="list"><thead><tr><th>User</th><th>Joined</th><th>Role</th><th></th></tr></thead><tbody id="users-rows"></tbody></table>
+    </div>
+  </aside>
+  <input id="import-file" type="file" accept=".xlsx,.xlsm" hidden>
+</section>
+
+<div id="modal" class="modal" hidden><div class="modal-card"><h2 id="modal-title"></h2><div id="modal-body"></div><div id="modal-buttons" class="modal-buttons"></div></div></div>
+<div id="toasts" class="toasts"></div>
+
+<script src="js/config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="vendor/chart.umd.min.js"></script>
+<script src="vendor/exceljs.min.js" defer></script>
+<script src="js/fmt.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/grid.js"></script>
+<script src="js/backend.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

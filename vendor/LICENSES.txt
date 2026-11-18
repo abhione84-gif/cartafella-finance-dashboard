@@ -1,0 +1,5 @@
+Third-party libraries included in this site (unchanged copies):
+- Chart.js 4.6.1 (MIT) – https://www.chartjs.org
+- ExcelJS 4.4.0 (MIT) – https://github.com/exceljs/exceljs
+- Supabase JS 2.119.0 (MIT) – https://github.com/supabase/supabase-js
+- Poppins font via Fontsource 5.3.0 (SIL Open Font License 1.1) – https://fontsource.org/fonts/poppins
