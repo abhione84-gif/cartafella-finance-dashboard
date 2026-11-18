@@ -4,114 +4,104 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Finance Dashboard</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%23B71F29%22/%3E%3Ctext x=%2216%22 y=%2223%22 font-size=%2219%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Arial%22%3EC%3C/text%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/app.css">
+<title>Cartafella Analytics · Finance Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%23B71F29%22/%3E%3Ctext x=%2216%22 y=%2222%22 font-size=%2218%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Arial%22 font-weight=%22bold%22%3EC%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/app.css?v=3">
 </head>
 <body>
 
-<!-- sign in -->
-<section id="auth" class="screen" hidden>
-  <form id="auth-form" class="card" data-mode="signin">
-    <div class="brand"><span class="mark">C</span><div><div class="b1">Cartafella Analytics</div><div class="b2">Finance Dashboard</div></div></div>
+<section id="auth-page" class="auth-page" hidden>
+  <form id="auth-form" class="auth-card" data-mode="signin">
+    <div class="brand"><span class="brand-mark">C</span><div><div class="brand-name">Cartafella Analytics</div><div class="brand-sub">Finance Dashboard</div></div></div>
     <h1 id="auth-title">Sign in</h1>
-    <label id="auth-name-row" hidden>Full name<input id="auth-name" autocomplete="name"></label>
-    <label id="auth-email-row">Email<input id="auth-email" type="email" autocomplete="username" required></label>
-    <label id="auth-pass-row">Password<input id="auth-pass" type="password" autocomplete="current-password"></label>
-    <label id="auth-pass2-row" hidden>Repeat new password<input id="auth-pass2" type="password" autocomplete="new-password"></label>
+    <div class="field" id="auth-name-row" hidden><label>Full name</label><input id="auth-name" autocomplete="name"></div>
+    <div class="field" id="auth-email-row"><label>Email</label><input id="auth-email" type="email" autocomplete="username" required></div>
+    <div class="field" id="auth-pass-row"><label>Password</label><input id="auth-pass" type="password" autocomplete="current-password"></div>
+    <div class="field" id="auth-pass2-row" hidden><label>Repeat new password</label><input id="auth-pass2" type="password" autocomplete="new-password"></div>
     <button id="auth-submit" class="btn primary wide" type="submit">Sign in</button>
     <p id="auth-msg" class="msg"></p>
-    <p id="auth-links" class="links"></p>
+    <p id="auth-links" class="auth-links"></p>
   </form>
 </section>
 
-<!-- waiting for approval -->
-<section id="pending" class="screen" hidden>
-  <div class="card">
-    <div class="brand"><span class="mark">C</span><div><div class="b1">Cartafella Analytics</div><div class="b2">Finance Dashboard</div></div></div>
+<section id="pending-page" class="auth-page" hidden>
+  <div class="auth-card">
+    <div class="brand"><span class="brand-mark">C</span><div><div class="brand-name">Cartafella Analytics</div><div class="brand-sub">Finance Dashboard</div></div></div>
     <h1>Waiting for access</h1>
-    <p>You are signed in as <b id="pending-email"></b>. An admin needs to give your account access before you can see the dashboard.</p>
-    <p><button id="pending-refresh" class="btn primary">Check again</button> <button id="pending-signout" class="btn">Sign out</button></p>
+    <p class="muted">You're signed in as <b id="pending-email"></b>. An administrator needs to approve your account before you can view the dashboard.</p>
+    <div class="row" style="margin-top:16px"><button id="pending-refresh" class="btn primary">Check again</button><button id="pending-signout" class="btn">Sign out</button></div>
   </div>
 </section>
 
-<section id="loading" class="screen"><div class="spinner"></div><p id="loading-text">Loading…</p></section>
+<section id="loading" class="auth-page loader"><div><div class="spinner"></div><p id="loading-text">Loading…</p></div></section>
 
-<!-- the app -->
-<section id="app" hidden>
-  <header class="top">
-    <div class="brand small"><span class="mark">C</span><span id="title">Finance Dashboard</span></div>
-    <div class="actions">
-      <button id="btn-undo" class="btn ghost" title="Undo (Ctrl+Z)">↶ Undo</button>
-      <button id="btn-find" class="btn ghost" title="Find (Ctrl+F)">Find</button>
-      <button id="btn-history" class="btn ghost">Change history</button>
-      <button id="btn-import" class="btn ghost" title="Load input data from an Excel file">Import Excel</button>
-      <button id="btn-export" class="btn ghost" title="Download all tabs as an Excel file">Download Excel</button>
-      <button id="btn-example" class="btn ghost" title="Clear the rows flagged EXAMPLE">Remove example data</button>
-      <button id="btn-users" class="btn ghost">Users</button>
-      <select id="zoom" title="Zoom"><option value="0.7">70%</option><option value="0.8">80%</option><option value="0.9">90%</option><option value="1" selected>100%</option><option value="1.1">110%</option><option value="1.25">125%</option></select>
-      <span id="status" class="status ok">All changes saved</span>
-      <span id="who" class="who"></span>
-      <button id="btn-signout" class="btn ghost">Sign out</button>
+<section id="app" class="app" hidden>
+  <header class="header">
+    <div class="row">
+      <button id="menu-toggle" class="btn ghost icon menu-toggle" title="Menu">☰</button>
+      <div class="brand"><span class="brand-mark sm">C</span><span>Cartafella Finance</span></div>
+    </div>
+    <div class="header-right">
+      <div id="global-filters" class="filters-bar"></div>
+      <span id="status" class="status ok">Saved</span>
+      <div class="menu-btn">
+        <button id="user-btn" class="who"><span class="avatar" id="user-avatar"></span><span id="user-name"></span><span id="user-role" class="role-badge"></span></button>
+        <div id="user-menu" class="menu-pop" hidden>
+          <a href="#" id="menu-history">Change history</a>
+          <a href="#" id="menu-users" hidden>Manage users</a>
+          <hr>
+          <a href="#" id="menu-import">Import from Excel</a>
+          <a href="#" id="menu-export">Download as Excel</a>
+          <a href="#" id="menu-clear-example" hidden>Remove example data</a>
+          <hr>
+          <a href="#" id="menu-signout">Sign out</a>
+        </div>
+      </div>
     </div>
   </header>
-  <div id="demo-banner" class="demo" hidden>Demo mode: Supabase is not connected yet (see js/config.js). Data is kept in this browser only.</div>
-  <div class="fbar">
-    <span id="cell-addr" class="addr"></span>
-    <span id="cell-info" class="info"></span>
-    <span id="cell-value" class="value"></span>
-    <span id="cell-last" class="last"></span>
-  </div>
-  <div id="grid"></div>
-  <footer class="tabsbar">
-    <button id="tab-prev" class="tabnav" title="Scroll tabs left">‹</button>
-    <nav id="tabs"></nav>
-    <button id="tab-next" class="tabnav" title="Scroll tabs right">›</button>
-  </footer>
 
-  <div id="find" class="find" hidden>
-    <input id="find-q" placeholder="Find on this tab…"><button id="find-next" class="btn small">Next</button><span id="find-msg" class="muted small"></span><button id="find-close" class="x" title="Close">×</button>
-  </div>
-
-  <aside id="history" class="panel" hidden>
-    <div class="panel-head"><h2>Change history</h2><button id="hist-close" class="x" title="Close">×</button></div>
-    <div class="filters">
-      <select id="hist-sheet"></select>
-      <input id="hist-addr" placeholder="Cell, e.g. H12" size="8">
-      <input id="hist-email" placeholder="User email">
-      <label>From <input id="hist-from" type="date"></label>
-      <label>To <input id="hist-to" type="date"></label>
-      <button id="hist-apply" class="btn small primary">Show</button>
-      <button id="hist-csv" class="btn small">Download CSV</button>
-    </div>
-    <div class="panel-body">
-      <table class="list"><thead><tr><th>When</th><th>Who</th><th>Cell</th><th>Action</th><th>Before</th><th>After</th><th>Note</th></tr></thead><tbody id="hist-rows"></tbody></table>
-      <p id="hist-empty" class="muted" hidden>No changes found.</p>
-      <p><button id="hist-more" class="btn small">Load more</button></p>
-    </div>
-  </aside>
-
-  <aside id="users" class="panel narrow" hidden>
-    <div class="panel-head"><h2>Users</h2><button id="users-close" class="x" title="Close">×</button></div>
-    <div class="panel-body">
-      <p class="muted">People create an account on the sign-in page; it then appears here as <b>pending</b>. Choose <b>viewer</b> (read only), <b>editor</b> (can enter data) or <b>admin</b> (can also manage users).</p>
-      <table class="list"><thead><tr><th>User</th><th>Joined</th><th>Role</th><th></th></tr></thead><tbody id="users-rows"></tbody></table>
-    </div>
-  </aside>
-  <input id="import-file" type="file" accept=".xlsx,.xlsm" hidden>
+  <nav id="sidebar" class="sidebar"></nav>
+  <main id="main" class="main"></main>
 </section>
+
+<aside id="history" class="panel" hidden>
+  <div class="panel-head"><h2>Change history</h2><button class="x" id="hist-close" title="Close">×</button></div>
+  <div class="filters">
+    <div class="field"><label>Tab</label><select id="hist-sheet"></select></div>
+    <div class="field"><label>Cell</label><input id="hist-addr" placeholder="e.g. H12"></div>
+    <div class="field" style="flex:1"><label>User</label><input id="hist-email" placeholder="email"></div>
+    <div class="field"><label>From</label><input id="hist-from" type="date"></div>
+    <div class="field"><label>To</label><input id="hist-to" type="date"></div>
+    <div><button id="hist-apply" class="btn primary sm">Apply</button></div>
+    <div><button id="hist-csv" class="btn sm">CSV</button></div>
+  </div>
+  <div class="panel-body"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>When</th><th>User</th><th>Where</th><th>Action</th><th>Before</th><th>After</th><th>Note</th></tr></thead><tbody id="hist-rows"></tbody></table></div>
+    <p id="hist-empty" class="empty" hidden><span class="empty-icon">—</span><div class="empty-title">No changes yet</div></p>
+    <p style="margin-top:12px"><button id="hist-more" class="btn sm">Load more</button></p>
+  </div>
+</aside>
+
+<aside id="users-panel" class="panel" hidden style="width:min(640px,100%)">
+  <div class="panel-head"><h2>Users</h2><button class="x" id="users-close" title="Close">×</button></div>
+  <div class="panel-body"><p class="muted">People sign up on the login page, then appear as <b>pending</b>. Give each one a role: <b>viewer</b> (read only), <b>editor</b> (enter data), <b>admin</b> (also manage users).</p>
+    <div class="tbl-wrap" style="margin-top:14px"><table class="tbl"><thead><tr><th>User</th><th>Joined</th><th>Role</th><th></th></tr></thead><tbody id="users-rows"></tbody></table></div>
+  </div>
+</aside>
 
 <div id="modal" class="modal" hidden><div class="modal-card"><h2 id="modal-title"></h2><div id="modal-body"></div><div id="modal-buttons" class="modal-buttons"></div></div></div>
 <div id="toasts" class="toasts"></div>
+<div id="drawer-root"></div>
+<input id="import-file" type="file" accept=".xlsx,.xlsm" hidden>
 
-<script src="js/config.js?v=2"></script>
+<script src="js/config.js?v=3"></script>
 <script src="vendor/supabase.js"></script>
 <script src="vendor/chart.umd.min.js"></script>
 <script src="vendor/exceljs.min.js" defer></script>
-<script src="js/fmt.js"></script>
-<script src="js/engine.js"></script>
-<script src="js/grid.js"></script>
-<script src="js/backend.js"></script>
-<script src="js/app.js"></script>
+<script src="js/fmt.js?v=3"></script>
+<script src="js/engine.js?v=3"></script>
+<script src="js/backend.js?v=3"></script>
+<script src="js/components.js?v=3"></script>
+<script src="js/pages.js?v=3"></script>
+<script src="js/app.js?v=3"></script>
 </body>
 </html>
