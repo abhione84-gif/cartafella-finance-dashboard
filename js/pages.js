@@ -1160,7 +1160,7 @@
   }
 
   // ---------- EXPORT ----------
-  root.Pages = {
+  root.FinancePages = {
     'Dashboard': Dashboard,
     'Period Reports': PeriodReports,
     'KPIs & Ratios': KPIs,
@@ -1181,4 +1181,6 @@
     'Masters': Masters,
     'Settings': Settings
   };
+  // Backward-compat
+  root.Pages = root.FinancePages;
 })(typeof self !== 'undefined' ? self : this);

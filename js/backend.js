@@ -47,10 +47,11 @@
     if (r.error) throw r.error;
     return { id: s.user.id, email: s.user.email, name: r.data && r.data.full_name, role: r.data ? r.data.role : 'pending' };
   };
-  SupabaseBackend.prototype.loadCells = async function (progress) {
+  SupabaseBackend.prototype.loadCells = async function (progress, module) {
+    var table = module === 'hr' ? 'hr_cells' : 'fin_cells';
     var out = [], page = 1000, from = 0;
     for (;;) {
-      var r = await this.sb.from('fin_cells').select('sheet,addr,value').order('sheet').order('addr').range(from, from + page - 1);
+      var r = await this.sb.from(table).select('sheet,addr,value').order('sheet').order('addr').range(from, from + page - 1);
       if (r.error) throw r.error;
       out = out.concat(r.data);
       progress && progress(out.length);
@@ -59,9 +60,41 @@
     }
     return out;
   };
-  SupabaseBackend.prototype.save = async function (changes, note) {
-    var r = await this.sb.rpc('fin_save', { changes: changes, note: note || null });
+  SupabaseBackend.prototype.save = async function (changes, note, module) {
+    var fn = module === 'hr' ? 'hr_save' : 'fin_save';
+    var r = await this.sb.rpc(fn, { changes: changes, note: note || null });
     if (r.error) { var e = new Error(r.error.message); e.code = r.error.code; e.permanent = r.error.code === '42501' || r.error.code === 'P0001'; throw e; }
+    return r.data;
+  };
+  // ---- Employees ----
+  SupabaseBackend.prototype.listEmployees = async function () {
+    var r = await this.sb.from('hr_employees').select('*').order('full_name');
+    if (r.error) throw r.error; return r.data || [];
+  };
+  SupabaseBackend.prototype.upsertEmployee = async function (payload) {
+    var r = await this.sb.rpc('hr_upsert_employee', { payload: payload });
+    if (r.error) { var e = new Error(r.error.message); e.permanent = r.error.code === '42501' || r.error.code === 'P0001'; throw e; }
+    return r.data;
+  };
+  SupabaseBackend.prototype.deleteEmployee = async function (id) {
+    var r = await this.sb.rpc('hr_delete_employee', { target: id });
+    if (r.error) throw r.error;
+  };
+  // ---- Leave ----
+  SupabaseBackend.prototype.listLeave = async function (filter) {
+    var q = this.sb.from('hr_leave_requests').select('*,employee:employee_id(id,full_name,employee_code,department)').order('requested_at', { ascending: false });
+    if (filter && filter.status) q = q.eq('status', filter.status);
+    if (filter && filter.employeeId) q = q.eq('employee_id', filter.employeeId);
+    var r = await q; if (r.error) throw r.error; return r.data || [];
+  };
+  SupabaseBackend.prototype.requestLeave = async function (payload) {
+    var r = await this.sb.rpc('hr_request_leave', { payload: payload });
+    if (r.error) { var e = new Error(r.error.message); e.permanent = r.error.code === '42501' || r.error.code === 'P0001'; throw e; }
+    return r.data;
+  };
+  SupabaseBackend.prototype.decideLeave = async function (id, decision, reason) {
+    var r = await this.sb.rpc('hr_decide_leave', { p_request: id, p_decision: decision, p_reason: reason || null });
+    if (r.error) { var e = new Error(r.error.message); e.permanent = r.error.code === '42501' || r.error.code === 'P0001'; throw e; }
     return r.data;
   };
   SupabaseBackend.prototype.history = async function (f, offset, limit) {
@@ -76,8 +109,9 @@
   SupabaseBackend.prototype.members = async function () { var r = await this.sb.from('fin_members').select('*').order('created_at'); if (r.error) throw r.error; return r.data; };
   SupabaseBackend.prototype.setRole = async function (id, role) { var r = await this.sb.rpc('fin_set_role', { target: id, new_role: role }); if (r.error) throw r.error; };
   SupabaseBackend.prototype.removeMember = async function (id) { var r = await this.sb.rpc('fin_remove_member', { target: id }); if (r.error) throw r.error; };
-  SupabaseBackend.prototype.subscribe = function (cb, status) {
-    var ch = this.sb.channel('fin-cells').on('postgres_changes', { event: '*', schema: 'public', table: 'fin_cells' }, function (p) {
+  SupabaseBackend.prototype.subscribe = function (cb, status, module) {
+    var table = module === 'hr' ? 'hr_cells' : 'fin_cells';
+    var ch = this.sb.channel(table).on('postgres_changes', { event: '*', schema: 'public', table: table }, function (p) {
       if (p.eventType === 'DELETE') cb(p.old.sheet, p.old.addr, null); else cb(p.new.sheet, p.new.addr, p.new.value);
     }).subscribe(function (s) { status && status(s); });
     return ch;
@@ -130,6 +164,51 @@
   DemoBackend.prototype.removeMember = async function () { throw new Error('Not available in demo mode.'); };
   DemoBackend.prototype.subscribe = function () { return null; };
   DemoBackend.prototype.wipe = function () { localStorage.removeItem(this.key); };
+  DemoBackend.prototype.listEmployees = async function () { return JSON.parse(localStorage.getItem('fin-demo-emp') || '[]'); };
+  DemoBackend.prototype.upsertEmployee = async function (p) {
+    var list = JSON.parse(localStorage.getItem('fin-demo-emp') || '[]');
+    if (p.id) { list = list.map(function (e) { return e.id === p.id ? Object.assign({}, e, p) : e; }); }
+    else { p.id = 'demo-' + Date.now(); list.push(Object.assign({ leave_balance_annual: 21, leave_balance_sick: 10, leave_balance_casual: 5, status: 'Active' }, p)); }
+    localStorage.setItem('fin-demo-emp', JSON.stringify(list));
+    return list.find(function (e) { return e.id === p.id; });
+  };
+  DemoBackend.prototype.deleteEmployee = async function (id) {
+    var list = JSON.parse(localStorage.getItem('fin-demo-emp') || '[]').filter(function (e) { return e.id !== id; });
+    localStorage.setItem('fin-demo-emp', JSON.stringify(list));
+  };
+  DemoBackend.prototype.listLeave = async function (f) {
+    var list = JSON.parse(localStorage.getItem('fin-demo-leave') || '[]');
+    var emps = JSON.parse(localStorage.getItem('fin-demo-emp') || '[]');
+    list.forEach(function (r) { r.employee = emps.find(function (e) { return e.id === r.employee_id; }); });
+    if (f && f.status) list = list.filter(function (r) { return r.status === f.status; });
+    return list;
+  };
+  DemoBackend.prototype.requestLeave = async function (p) {
+    var list = JSON.parse(localStorage.getItem('fin-demo-leave') || '[]');
+    var r = Object.assign({ id: 'lv-' + Date.now(), status: 'Pending', requested_at: new Date().toISOString() }, p);
+    list.push(r); localStorage.setItem('fin-demo-leave', JSON.stringify(list));
+    return r;
+  };
+  DemoBackend.prototype.decideLeave = async function (id, decision, reason) {
+    var list = JSON.parse(localStorage.getItem('fin-demo-leave') || '[]');
+    var emps = JSON.parse(localStorage.getItem('fin-demo-emp') || '[]');
+    list = list.map(function (r) {
+      if (r.id !== id) return r;
+      r.status = decision; r.approved_at = new Date().toISOString(); r.rejected_reason = decision === 'Rejected' ? reason : null;
+      if (decision === 'Approved') {
+        emps = emps.map(function (e) {
+          if (e.id !== r.employee_id) return e;
+          var key = 'leave_balance_' + r.leave_type.toLowerCase();
+          if (e[key] !== undefined) e[key] = Number(e[key]) - Number(r.days);
+          return e;
+        });
+      }
+      return r;
+    });
+    localStorage.setItem('fin-demo-leave', JSON.stringify(list));
+    localStorage.setItem('fin-demo-emp', JSON.stringify(emps));
+    return list.find(function (r) { return r.id === id; });
+  };
 
   root.XBackend = {
     create: function (cfg) {

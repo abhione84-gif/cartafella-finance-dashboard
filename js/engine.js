@@ -501,6 +501,40 @@
     },
     COUNTIFS: function (bk, a, ctx) { return multiCrit(bk, a, ctx).length; },
     COUNTIF: function (bk, a, ctx) { return multiCrit(bk, a, ctx).length; },
+    AVERAGEIFS: function (bk, a, ctx) {
+      var idx = multiCrit(bk, a.slice(1), ctx), f = bk.flat(a[0]), s = 0, n = 0;
+      for (var i = 0; i < idx.length; i++) { var x = f[idx[i]]; if (isErr(x)) return x; if (typeof x === 'number') { s += x; n++; } }
+      return n === 0 ? DIV0 : s / n;
+    },
+    AVERAGEIF: function (bk, a, ctx) {
+      var idx = multiCrit(bk, [a[0], a[1]], ctx), f = bk.flat(a.length > 2 && a[2] ? a[2] : a[0]), s = 0, n = 0;
+      for (var i = 0; i < idx.length; i++) { var x = f[idx[i]]; if (typeof x === 'number') { s += x; n++; } }
+      return n === 0 ? DIV0 : s / n;
+    },
+    AVERAGE: function (bk, a, ctx) { var nums = aggNums(bk, a, ctx); if (isErr(nums)) return nums; return nums.length === 0 ? DIV0 : nums.reduce(function (p, x) { return p + x; }, 0) / nums.length; },
+    MAXIFS: function (bk, a, ctx) {
+      var idx = multiCrit(bk, a.slice(1), ctx), f = bk.flat(a[0]), m = null;
+      for (var i = 0; i < idx.length; i++) { var x = f[idx[i]]; if (isErr(x)) return x; if (typeof x === 'number') { if (m === null || x > m) m = x; } }
+      return m === null ? 0 : m;
+    },
+    MINIFS: function (bk, a, ctx) {
+      var idx = multiCrit(bk, a.slice(1), ctx), f = bk.flat(a[0]), m = null;
+      for (var i = 0; i < idx.length; i++) { var x = f[idx[i]]; if (isErr(x)) return x; if (typeof x === 'number') { if (m === null || x < m) m = x; } }
+      return m === null ? 0 : m;
+    },
+    MEDIAN: function (bk, a, ctx) { var n = aggNums(bk, a, ctx); if (isErr(n)) return n; if (!n.length) return NUM; n.sort(function (x, y) { return x - y; }); var m = n.length; return m % 2 ? n[(m - 1) / 2] : (n[m / 2 - 1] + n[m / 2]) / 2; },
+    CONCAT: function (bk, a, ctx) { var out = ''; for (var i = 0; i < a.length; i++) bk.flat(a[i]).forEach(function (x) { if (x !== null && x !== undefined && x !== '') out += str(x); }); return out; },
+    CONCATENATE: function (bk, a, ctx) { var out = ''; for (var i = 0; i < a.length; i++) { var v = bk.scalar(a[i], ctx); if (isErr(v)) return v; out += str(v); } return out; },
+    TEXTJOIN: function (bk, a, ctx) {
+      var sep = str(bk.scalar(a[0], ctx)), ign = !!bool(bk.scalar(a[1], ctx)), out = [];
+      for (var i = 2; i < a.length; i++) bk.flat(a[i]).forEach(function (x) { if (ign && (x === null || x === '')) return; if (isErr(x)) return; out.push(str(x)); });
+      return out.join(sep);
+    },
+    MID: function (bk, a, ctx) { var s = str(bk.scalar(a[0], ctx)), st = Math.trunc(num(bk.scalar(a[1], ctx))), n = Math.trunc(num(bk.scalar(a[2], ctx))); if (st < 1 || n < 0) return VALUE; return s.substr(st - 1, n); },
+    FIND: function (bk, a, ctx) { var needle = str(bk.scalar(a[0], ctx)), hay = str(bk.scalar(a[1], ctx)), start = a.length > 2 ? Math.trunc(num(bk.scalar(a[2], ctx))) : 1; var idx = hay.indexOf(needle, start - 1); return idx < 0 ? VALUE : idx + 1; },
+    SEARCH: function (bk, a, ctx) { var needle = str(bk.scalar(a[0], ctx)).toLowerCase(), hay = str(bk.scalar(a[1], ctx)).toLowerCase(), start = a.length > 2 ? Math.trunc(num(bk.scalar(a[2], ctx))) : 1; var idx = hay.indexOf(needle, start - 1); return idx < 0 ? VALUE : idx + 1; },
+    SUBSTITUTE: function (bk, a, ctx) { var s = str(bk.scalar(a[0], ctx)), o = str(bk.scalar(a[1], ctx)), n = str(bk.scalar(a[2], ctx)); if (a.length > 3) { var inst = Math.trunc(num(bk.scalar(a[3], ctx))), i = -1, c = 0; while ((i = s.indexOf(o, i + 1)) >= 0) { c++; if (c === inst) return s.slice(0, i) + n + s.slice(i + o.length); } return s; } return s.split(o).join(n); },
+    IFS: function (bk, a, ctx) { for (var i = 0; i < a.length; i += 2) { var b = bool(bk.scalar(bk.ev(a[i], ctx), ctx)); if (isErr(b)) return b; if (b) return bk.ev(a[i + 1], ctx); } return new XErr('#N/A'); },
     SUMPRODUCT: function (bk, a, ctx) {
       var arrs = a.map(function (v) { return single(v) ? [bk.scalar(v, ctx)] : bk.flat(v); });
       var n = arrs[0].length;
@@ -564,6 +598,8 @@
 
   Book.prototype.call = function (n, ctx) {
     var name = n[1], args = n.slice(2);
+    // Excel stores newer functions with the _XLFN. prefix; strip it so we match by base name.
+    if (name.indexOf('_XLFN.') === 0) name = name.slice(6);
     if (LAZY[name]) return LAZY[name](this, args, ctx);
     var f = FN[name];
     if (!f) return NAME;

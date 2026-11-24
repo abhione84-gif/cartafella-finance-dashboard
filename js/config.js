@@ -6,6 +6,7 @@
 window.APP_CONFIG = {
   SUPABASE_URL: 'https://luzfbsvxzibaykmukjlk.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_VBNjl_YR8Iixl7_4KYvYCw_V7arKNPB',
-  TITLE: 'Cartafella Analytics · Finance Dashboard',
-  EXPORT_NAME: 'Cartafella-Finance-Dashboard'
+  TITLE: 'Cartafella Operations',
+  SUBTITLE: 'Finance · HR · People',
+  EXPORT_NAME: 'Cartafella-Operations'
 };
