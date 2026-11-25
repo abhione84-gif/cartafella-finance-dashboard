@@ -104,7 +104,8 @@ label { display: block; font-size: 12px; color: var(--text-muted); font-weight: 
 .invite-row .field.grow { min-width: 0; }
 .invite-pending { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--border); }
 .invite-pending:first-of-type { border-top: 0; }
-.member-row { display: grid; grid-template-columns: 1.8fr 1fr 2.2fr auto; gap: 14px; align-items: center; padding: 10px 0; border-top: 1px solid var(--border); }
+.member-row { display: grid; grid-template-columns: 1.6fr 0.9fr 2fr auto; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--border); }
+.member-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 .member-row:first-of-type { border-top: 0; }
 .member-role select, .member-role label, .member-mods label { display: block; margin-bottom: 4px; }
 @media (max-width: 700px) {

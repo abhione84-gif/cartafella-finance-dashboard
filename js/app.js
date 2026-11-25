@@ -537,40 +537,77 @@
       memCard.appendChild(el('h2', { text: 'Active users (' + members.length + ')', style: { marginBottom: '10px' } }));
       members.forEach(function (u) {
         var isSelf = u.user_id === state.me.id;
-        var mods = (u.modules || []).slice();
+        // Draft state — what the admin has edited but not yet saved
+        var draftRole = u.role;
+        var draftMods = (u.modules || []).slice();
         var row = el('div', { class: 'member-row' });
         row.appendChild(el('div', { class: 'member-who' }, [
           el('div', {}, [el('b', { text: u.full_name || u.email.split('@')[0] }), isSelf ? el('span', { class: 'pill', text: 'you', style: { marginLeft: '6px' } }) : null]),
           el('div', { class: 'small muted', text: u.email + ' · joined ' + fmtTime(u.created_at) })
         ]));
-        var roleSel = el('select', { disabled: isSelf, onChange: function (e) { persistAccess(u.user_id, e.target.value, e.target.value === 'admin' ? ALL_MODULES : mods); } },
+        var saveBtn, revertBtn, dirtyTag;
+        function isDirty() {
+          if (draftRole !== u.role) return true;
+          var a = (draftRole === 'admin' ? ALL_MODULES : draftMods).slice().sort();
+          var b = (u.role === 'admin' ? ALL_MODULES : (u.modules || [])).slice().sort();
+          if (a.length !== b.length) return true;
+          for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return true;
+          return false;
+        }
+        function refreshButtons() {
+          var dirty = isDirty();
+          if (saveBtn) { saveBtn.disabled = !dirty; saveBtn.classList.toggle('primary', dirty); }
+          if (revertBtn) revertBtn.disabled = !dirty;
+          if (dirtyTag) dirtyTag.style.display = dirty ? '' : 'none';
+        }
+        var roleSel = el('select', { disabled: isSelf,
+          onChange: function (e) { draftRole = e.target.value; renderMemberChips(); refreshButtons(); } },
           ['pending', 'viewer', 'editor', 'admin'].map(function (r) { return el('option', { value: r, text: r, selected: r === u.role }); }));
         row.appendChild(el('div', { class: 'member-role' }, [el('label', { class: 'small muted', text: 'Role' }), roleSel]));
         var chipsWrap = el('div', { class: 'member-mods' }, [el('label', { class: 'small muted', text: 'Modules' })]);
         function renderMemberChips() {
           var existing = chipsWrap.querySelector('.mod-chips'); if (existing) existing.remove();
-          chipsWrap.appendChild(moduleChips(u.role === 'admin' ? ALL_MODULES : mods, null, function (next) {
-            mods = next; persistAccess(u.user_id, roleSel.value, roleSel.value === 'admin' ? ALL_MODULES : mods);
-          }, u.role === 'admin' || isSelf));
+          var shown = draftRole === 'admin' ? ALL_MODULES : draftMods;
+          chipsWrap.appendChild(moduleChips(shown, null, function (next) {
+            draftMods = next; refreshButtons();
+          }, draftRole === 'admin' || isSelf));
         }
         renderMemberChips();
         row.appendChild(chipsWrap);
-        row.appendChild(el('div', { class: 'member-actions' },
-          isSelf ? [el('span', { class: 'small muted', text: '—' })]
-                 : [el('button', { class: 'btn ghost sm', text: 'Remove', onClick: async function () {
-                     if (!(await modal('Remove user', '<p>Remove <b>' + U.esc(u.email) + '</b>? Their past changes stay in the history.</p>', [{ label: 'Cancel', value: false }, { label: 'Remove', value: true, danger: true }]))) return;
-                     try { await backend.removeMember(u.user_id); toast('User removed', 'success'); renderUsersPanel(); } catch (ex) { toast(ex.message, 'error'); }
-                   } })]));
+        // Actions: Save · Revert · Remove · (dirty tag)
+        dirtyTag = el('span', { class: 'pill warn small', text: 'unsaved', style: { display: 'none', marginRight: '6px' } });
+        saveBtn = el('button', { class: 'btn sm', text: 'Save', disabled: true, onClick: async function () {
+          var roleToSave = draftRole;
+          var modsToSave = roleToSave === 'admin' ? ALL_MODULES : draftMods;
+          saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+          try {
+            await backend.setAccess(u.user_id, roleToSave, modsToSave);
+            toast('Saved ' + u.email, 'success');
+            setStatus('ok', 'Access updated');
+            renderUsersPanel(); // re-fetches members, redraws the table so it reflects what is now stored
+          } catch (ex) {
+            saveBtn.textContent = 'Save'; saveBtn.disabled = false;
+            toast(ex.message || 'Could not save', 'error');
+          }
+        } });
+        revertBtn = el('button', { class: 'btn ghost sm', text: 'Revert', disabled: true, onClick: function () {
+          draftRole = u.role; draftMods = (u.modules || []).slice();
+          roleSel.value = draftRole; renderMemberChips(); refreshButtons();
+        } });
+        var actions = [dirtyTag, saveBtn, revertBtn];
+        if (!isSelf) {
+          actions.push(el('button', { class: 'btn ghost sm', text: 'Remove', onClick: async function () {
+            if (!(await modal('Remove user', '<p>Remove <b>' + U.esc(u.email) + '</b>? Their past changes stay in the history.</p>', [{ label: 'Cancel', value: false }, { label: 'Remove', value: true, danger: true }]))) return;
+            try { await backend.removeMember(u.user_id); toast('User removed', 'success'); renderUsersPanel(); } catch (ex) { toast(ex.message, 'error'); }
+          } }));
+        }
+        row.appendChild(el('div', { class: 'member-actions' }, actions));
         memCard.appendChild(row);
       });
       panel.appendChild(memCard);
     } catch (ex) {
       panel.innerHTML = '<p class="muted">' + U.esc(ex.message) + '</p>';
     }
-  }
-  async function persistAccess(userId, role, modules) {
-    try { await backend.setAccess(userId, role, modules); setStatus('ok', 'Access updated'); }
-    catch (ex) { toast(ex.message || 'Could not update access', 'error'); renderUsersPanel(); }
   }
 
   // ---------- Change password ----------
@@ -753,5 +790,7 @@
   }
   wire();
   if (/type=recovery/.test(location.hash)) authView('newpass'); else start();
-  window.FinApp = { state: state, switchModule: switchModule, MODULES: MODULES };
+  window.FinApp = { state: state, switchModule: switchModule, MODULES: MODULES,
+    get backend() { return backend; }, set backend(b) { backend = b; },
+    openUsers: openUsers, renderUsersPanel: renderUsersPanel, start: start };
 })();
