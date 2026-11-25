@@ -30,7 +30,7 @@
     icon: '🚀',
     body: `
       <h2>What this app is</h2>
-      <p>Cartafella Operations is the web version of your Finance, HR / Recruitment and People workbooks. It keeps every tab from the Excel source plus a few web-only screens for Employees and Leave. The data lives in one shared database — everyone signed in sees the same numbers in real time, and every change is recorded in the Change history.</p>
+      <p>Cartafella Analytics is the web version of your Finance, HR / Recruitment and People workbooks. It keeps every tab from the Excel source plus a few web-only screens for Employees and Leave. The data lives in one shared database — everyone signed in sees the same numbers in real time, and every change is recorded in the Change history.</p>
 
       <h2>Signing in</h2>
       <p>Access is <b>invite only</b>. If you have never been invited, the login page will accept your email and password but the database will refuse to create the account. Ask an admin (currently <b>abhilash@cartafella.com</b>) to invite you first with the right role and modules. Once invited, come back to the login page, type the invited email, set a password of at least 8 characters, and you're in.</p>
@@ -370,59 +370,56 @@
   // ─────────────────────────────────────────── UI
   var currentTab = 'getting-started';
 
-  function open() {
-    var panel = document.getElementById('user-guide');
-    if (!panel) panel = build();
-    panel.hidden = false;
-    document.body.style.overflow = 'hidden';
-  }
-  function close() {
-    var panel = document.getElementById('user-guide');
-    if (panel) panel.hidden = true;
-    document.body.style.overflow = '';
-  }
-  function build() {
-    var panel = h('div', { id: 'user-guide', class: 'guide-overlay' });
-    var frame = h('div', { class: 'guide-frame' });
-    var header = h('div', { class: 'guide-head' }, [
-      h('h1', {}, 'User guide'),
+  // Render the whole guide into the given container element.
+  // Replaces anything already in it. The host app decides where this lives
+  // — e.g. the main content area when the user clicks "User guide".
+  function render(container, opts) {
+    opts = opts || {};
+    container.innerHTML = '';
+    container.classList.add('guide-page');
+
+    var page = h('div', { class: 'guide-root' });
+
+    // Header strip — title + Download PDF (and optional Back)
+    var head = h('div', { class: 'guide-head' }, [
+      h('div', { class: 'guide-title-wrap' }, [
+        h('h1', {}, 'User guide'),
+        h('p', { class: 'sub' }, 'Everything you need to know about Cartafella Analytics — Finance, HR / Recruitment and People')
+      ]),
       h('div', { class: 'guide-actions' }, [
         h('button', { class: 'btn primary', onclick: function () { downloadPDF(); } }, '⬇ Download PDF'),
-        h('button', { class: 'btn ghost', onclick: close }, 'Close')
+        opts.onBack ? h('button', { class: 'btn ghost', onclick: opts.onBack }, '← Back') : null
       ])
     ]);
-    frame.appendChild(header);
+    page.appendChild(head);
 
+    // Tab strip — one row of pills, horizontal, scrolls if cramped
     var tabs = h('div', { class: 'guide-tabs' });
+    var tabButtons = {};
     Object.keys(SECTIONS).forEach(function (id) {
       var s = SECTIONS[id];
-      var btn = h('button', { class: 'guide-tab' + (currentTab === id ? ' active' : ''),
-        onclick: function () { currentTab = id; renderBody(); renderTabs(); } },
-        [h('span', { class: 'guide-tab-icon' }, s.icon), h('span', {}, s.title)]);
+      var btn = h('button', { type: 'button', class: 'guide-tab' + (currentTab === id ? ' active' : ''),
+        onclick: function () { currentTab = id; renderBody(); refreshTabs(); window.scrollTo(0, 0); } },
+        [h('span', { class: 'guide-tab-icon' }, s.icon), h('span', { class: 'guide-tab-label' }, s.title)]);
       tabs.appendChild(btn);
+      tabButtons[id] = btn;
     });
-    function renderTabs() {
-      Array.from(tabs.children).forEach(function (b, i) {
-        b.classList.toggle('active', Object.keys(SECTIONS)[i] === currentTab);
+    function refreshTabs() {
+      Object.keys(tabButtons).forEach(function (id) {
+        tabButtons[id].classList.toggle('active', id === currentTab);
       });
     }
-    frame.appendChild(tabs);
+    page.appendChild(tabs);
 
+    // Body area — one article at a time
     var body = h('div', { class: 'guide-body' });
     function renderBody() {
       body.innerHTML = '<article class="guide-section"><h1>' + SECTIONS[currentTab].title + '</h1>' + SECTIONS[currentTab].body + '</article>';
     }
     renderBody();
-    frame.appendChild(body);
-    panel.appendChild(frame);
-    document.body.appendChild(panel);
+    page.appendChild(body);
 
-    // Esc closes
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !panel.hidden) close();
-    });
-    panel.addEventListener('click', function (e) { if (e.target === panel) close(); });
-    return panel;
+    container.appendChild(page);
   }
 
   function downloadPDF() {
@@ -431,7 +428,7 @@
     if (oldPrintable) oldPrintable.remove();
     var printable = h('div', { id: 'guide-print', class: 'guide-print' });
     printable.appendChild(h('div', { class: 'guide-print-cover' }, [
-      h('h1', {}, 'Cartafella Operations'),
+      h('h1', {}, 'Cartafella Analytics'),
       h('h2', {}, 'User guide'),
       h('p', { class: 'guide-print-meta' }, 'Finance · HR / Recruitment · People'),
       h('p', { class: 'guide-print-date' }, 'Generated ' + new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }))
@@ -461,5 +458,5 @@
     }, 100);
   }
 
-  root.UserGuide = { open: open, close: close, downloadPDF: downloadPDF };
+  root.UserGuide = { render: render, downloadPDF: downloadPDF };
 })(typeof self !== 'undefined' ? self : this);

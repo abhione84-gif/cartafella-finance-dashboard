@@ -1,4 +1,4 @@
-/* Cartafella Finance Dashboard — modern UI */
+/* Cartafella Analytics — modern UI */
 @font-face { font-family: Poppins; font-weight: 400; font-display: swap; src: url(../fonts/poppins-latin-400-normal.woff2) format('woff2'); }
 @font-face { font-family: Poppins; font-weight: 500; font-display: swap; src: url(../fonts/poppins-latin-500-normal.woff2) format('woff2'); }
 @font-face { font-family: Poppins; font-weight: 600; font-display: swap; src: url(../fonts/poppins-latin-600-normal.woff2) format('woff2'); }
@@ -93,32 +93,77 @@ label { display: block; font-size: 12px; color: var(--text-muted); font-weight: 
 .header { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: #fff; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 20; }
 .header .brand { display: flex; align-items: center; gap: 10px; color: var(--navy); font-weight: 600; font-size: 15px; }
 .header-right { display: flex; align-items: center; gap: 10px; }
-/* ===== User guide overlay ===== */
-.guide-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 1000; display: flex; justify-content: center; align-items: flex-start; padding: 24px; overflow: auto; }
-.guide-overlay[hidden] { display: none !important; }
-.guide-frame { background: #fff; border-radius: 12px; width: 100%; max-width: 920px; max-height: calc(100vh - 48px); display: flex; flex-direction: column; box-shadow: 0 25px 60px rgba(15,23,42,0.4); overflow: hidden; }
-.guide-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid var(--border); }
-.guide-head h1 { margin: 0; font-size: 22px; font-weight: 600; color: var(--navy); }
-.guide-actions { display: flex; gap: 8px; }
-.guide-tabs { display: flex; gap: 2px; padding: 0 16px; background: var(--navy-50); border-bottom: 1px solid var(--border); overflow-x: auto; }
-.guide-tab { display: flex; align-items: center; gap: 6px; padding: 12px 16px; background: transparent; border: none; border-bottom: 3px solid transparent; font: inherit; font-size: 14px; font-weight: 500; color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: all 0.15s; }
-.guide-tab:hover { color: var(--navy); }
-.guide-tab.active { color: var(--navy); border-bottom-color: var(--navy); font-weight: 600; }
+/* ===== User guide (in-app page) ===== */
+/* Rendered inside #main; sidebar + module switcher stay visible so the user can leave. */
+#main.guide-host { background: #FAFBFC; padding: 0 !important; }
+.guide-page { background: #FAFBFC; min-height: 100%; }
+.guide-root { max-width: 980px; margin: 0 auto; padding: 0 24px 48px; }
+
+.guide-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 28px 0 20px; flex-wrap: wrap; }
+.guide-title-wrap h1 { margin: 0 0 4px; font-size: 28px; font-weight: 600; color: var(--navy); line-height: 1.2; }
+.guide-title-wrap .sub { margin: 0; color: var(--text-muted); font-size: 14px; }
+.guide-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* Tab strip — always visible, horizontally laid out, each pill is a block */
+.guide-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.guide-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.guide-tab:hover { background: var(--navy-50); color: var(--navy); }
+.guide-tab.active { background: var(--navy); color: #fff; font-weight: 600; box-shadow: 0 1px 3px rgba(11, 37, 69, 0.3); }
+.guide-tab.active:hover { background: var(--navy); color: #fff; }
 .guide-tab-icon { font-size: 16px; }
-.guide-body { padding: 28px 36px; overflow-y: auto; }
-.guide-section h1 { font-size: 26px; margin: 0 0 20px; color: var(--navy); }
-.guide-section h2 { font-size: 18px; margin: 24px 0 10px; color: var(--navy); border-bottom: 1px solid var(--border); padding-bottom: 6px; }
-.guide-section h3 { font-size: 15px; margin: 18px 0 6px; color: var(--navy); font-weight: 600; }
-.guide-section p, .guide-section li { font-size: 14px; line-height: 1.6; color: var(--text); }
+
+.guide-body { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 32px 40px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04); }
+.guide-section h1 { font-size: 24px; margin: 0 0 20px; color: var(--navy); font-weight: 600; }
+.guide-section h2 { font-size: 18px; margin: 28px 0 10px; color: var(--navy); border-bottom: 1px solid var(--border); padding-bottom: 6px; font-weight: 600; }
+.guide-section h3 { font-size: 15px; margin: 20px 0 6px; color: var(--navy); font-weight: 600; }
+.guide-section p, .guide-section li { font-size: 14px; line-height: 1.65; color: var(--text); }
+.guide-section p { margin: 8px 0 12px; }
 .guide-section ul, .guide-section ol { padding-left: 22px; margin: 8px 0 14px; }
 .guide-section li { margin-bottom: 4px; }
 .guide-section b { color: var(--navy); font-weight: 600; }
 .guide-section code { background: var(--navy-50); padding: 1px 6px; border-radius: 3px; font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
 .guide-section .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; margin: 0 2px; }
-.guide-section .pill.ok { background: #DCFCE7; color: #166534; }
+.guide-section .pill.ok   { background: #DCFCE7; color: #166534; }
 .guide-section .pill.warn { background: #FEF3C7; color: #92400E; }
-.guide-section .pill.err { background: #FEE2E2; color: #991B1B; }
-@media (max-width: 720px) { .guide-head { padding: 14px 16px; } .guide-body { padding: 18px 20px; } .guide-section h1 { font-size: 20px; } .guide-section h2 { font-size: 16px; } }
+.guide-section .pill.err  { background: #FEE2E2; color: #991B1B; }
+
+@media (max-width: 760px) {
+  .guide-root { padding: 0 16px 32px; }
+  .guide-head { padding: 20px 0 16px; }
+  .guide-title-wrap h1 { font-size: 22px; }
+  .guide-body { padding: 20px 20px; }
+  .guide-tab { padding: 8px 12px; font-size: 13px; }
+  .guide-tab-label { display: none; }
+  .guide-tab.active .guide-tab-label { display: inline; }
+}
 
 /* ===== Print layout (used by Download PDF) ===== */
 .guide-print { display: none; }

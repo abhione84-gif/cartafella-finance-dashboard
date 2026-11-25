@@ -65,6 +65,12 @@
       ] }
     ] }
   };
+  // Every module gets a Settings group at the bottom of the sidebar with a User guide link.
+  Object.keys(MODULES).forEach(function (mk) {
+    MODULES[mk].nav.push({ group: 'Settings', items: [
+      { id: '__guide__', label: 'User guide', icon: '📖' }
+    ] });
+  });
 
   var state = {
     me: null, module: null, books: {}, models: {}, currentPage: null,
@@ -201,7 +207,7 @@
   }
 
   function buildApp() {
-    document.title = CFG.TITLE || 'Cartafella Operations';
+    document.title = CFG.TITLE || 'Cartafella Analytics';
     $('#user-name').textContent = state.me.name || state.me.email.split('@')[0];
     $('#user-avatar').textContent = (state.me.name || state.me.email).trim().charAt(0).toUpperCase();
     var role = $('#user-role'); role.textContent = state.me.role; role.className = 'role-badge ' + state.me.role;
@@ -241,7 +247,12 @@
     renderModuleSwitcher();
     renderSidebar();
     renderGlobalFilters();
-    var first = MODULES[mk].nav[0].items[0].id;
+    // First non-settings page in this module (so we don't open the guide by default)
+    var first;
+    for (var i = 0; i < MODULES[mk].nav.length && !first; i++) {
+      var items = MODULES[mk].nav[i].items;
+      for (var j = 0; j < items.length; j++) { if (items[j].id !== '__guide__') { first = items[j].id; break; } }
+    }
     var want = page && MODULES[mk].nav.some(function (g) { return g.items.some(function (i) { return i.id === page; }); }) ? page : first;
     renderPage(want);
   }
@@ -300,6 +311,12 @@
     state.currentPage = pageId;
     document.querySelectorAll('.nav-item').forEach(function (a) { a.classList.toggle('active', a.dataset.page === pageId); });
     var main = $('#main'); main.innerHTML = '';
+    // Special item: User guide lives under Settings in every module's sidebar
+    if (pageId === '__guide__') {
+      if (window.UserGuide) { main.classList.add('guide-host'); window.UserGuide.render(main); }
+      return;
+    }
+    main.classList.remove('guide-host');
     var pages = MODULES[state.module].pages || {};
     var fn = pages[pageId];
     if (!fn) {
@@ -674,7 +691,7 @@
       }
     });
     var buf = await wb.xlsx.writeBuffer();
-    var name = (CFG.EXPORT_NAME || 'Cartafella') + '-' + MODULES[state.module].label.replace(/[^a-zA-Z0-9]+/g, '-') + '-' + new Date().toISOString().slice(0, 10) + '.xlsx';
+    var name = (CFG.EXPORT_NAME || 'Cartafella-Analytics') + '-' + MODULES[state.module].label.replace(/[^a-zA-Z0-9]+/g, '-') + '-' + new Date().toISOString().slice(0, 10) + '.xlsx';
     download(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), name);
     setStatus('ok', backend.demo ? 'Demo (browser only)' : 'All saved');
     toast('Excel file downloaded', 'success');
@@ -780,7 +797,6 @@
     $('#menu-import').onclick = function (e) { e.preventDefault(); $('#user-menu').hidden = true; $('#import-file').value = ''; $('#import-file').click(); };
     $('#import-file').onchange = function () { var f = this.files[0]; if (f) importExcel(f); };
     $('#menu-clear-example').onclick = function (e) { e.preventDefault(); $('#user-menu').hidden = true; removeExamples(); };
-    $('#menu-guide').onclick = function (e) { e.preventDefault(); $('#user-menu').hidden = true; if (window.UserGuide) window.UserGuide.open(); };
     $('#menu-password').onclick = function (e) { e.preventDefault(); $('#user-menu').hidden = true; openChangePassword(); };
     $('#menu-toggle').onclick = function () { $('#sidebar').classList.toggle('open'); };
     $('#hist-close').onclick = function () { $('#history').hidden = true; };
