@@ -65,11 +65,11 @@
       ] }
     ] }
   };
-  // Every module gets a Settings group at the bottom of the sidebar with a User guide link.
+  // Add a User guide link to each module's Setup group (create one if missing — People has none).
   Object.keys(MODULES).forEach(function (mk) {
-    MODULES[mk].nav.push({ group: 'Settings', items: [
-      { id: '__guide__', label: 'User guide', icon: '📖' }
-    ] });
+    var setup = MODULES[mk].nav.find(function (g) { return g.group === 'Setup'; });
+    if (!setup) { setup = { group: 'Setup', items: [] }; MODULES[mk].nav.push(setup); }
+    setup.items.push({ id: '__guide__', label: 'User guide', icon: '📖' });
   });
 
   var state = {
