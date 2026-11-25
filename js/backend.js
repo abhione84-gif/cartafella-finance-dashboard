@@ -14,7 +14,11 @@
   SupabaseBackend.prototype.signUp = async function (email, password, name) {
     var r = await this.sb.auth.signUp({ email: email, password: password, options: { data: { full_name: name }, emailRedirectTo: location.origin + location.pathname } });
     if (r.error) {
-      // Supabase sometimes raises an explicit error: normalise it.
+      // Our server trigger raises this when there's no invite for the email.
+      if (/No invite found/i.test(r.error.message || '')) {
+        var ne = new Error('No invite found for this email. Ask an admin to invite you first.');
+        ne.noInvite = true; throw ne;
+      }
       if (/already (registered|exists)/i.test(r.error.message || '')) {
         var ex = new Error('duplicate'); ex.duplicate = true; throw ex;
       }
@@ -45,7 +49,12 @@
     var s = await this.session(); if (!s) return null;
     var r = await this.sb.from('fin_members').select('*').eq('user_id', s.user.id).maybeSingle();
     if (r.error) throw r.error;
-    return { id: s.user.id, email: s.user.email, name: r.data && r.data.full_name, role: r.data ? r.data.role : 'pending' };
+    return {
+      id: s.user.id, email: s.user.email,
+      name: r.data && r.data.full_name,
+      role: r.data ? r.data.role : 'pending',
+      modules: r.data && r.data.modules ? r.data.modules : []
+    };
   };
   SupabaseBackend.prototype.loadCells = async function (progress, module) {
     var table = module === 'hr' ? 'hr_cells' : 'fin_cells';
@@ -107,8 +116,29 @@
     var r = await q; if (r.error) throw r.error; return r.data;
   };
   SupabaseBackend.prototype.members = async function () { var r = await this.sb.from('fin_members').select('*').order('created_at'); if (r.error) throw r.error; return r.data; };
-  SupabaseBackend.prototype.setRole = async function (id, role) { var r = await this.sb.rpc('fin_set_role', { target: id, new_role: role }); if (r.error) throw r.error; };
+  SupabaseBackend.prototype.setAccess = async function (id, role, modules) {
+    var r = await this.sb.rpc('fin_set_access', { target: id, new_role: role, new_modules: modules });
+    if (r.error) throw r.error;
+  };
+  // kept for back-compat with callers that still pass only a role
+  SupabaseBackend.prototype.setRole = async function (id, role) {
+    var r = await this.sb.rpc('fin_set_access', { target: id, new_role: role, new_modules: null });
+    if (r.error) throw r.error;
+  };
   SupabaseBackend.prototype.removeMember = async function (id) { var r = await this.sb.rpc('fin_remove_member', { target: id }); if (r.error) throw r.error; };
+  SupabaseBackend.prototype.listInvites = async function () {
+    var r = await this.sb.from('fin_invites').select('*').order('invited_at', { ascending: false });
+    if (r.error) throw r.error; return r.data || [];
+  };
+  SupabaseBackend.prototype.invite = async function (email, role, modules, note) {
+    var r = await this.sb.rpc('fin_invite', { p_email: email, p_role: role, p_modules: modules, p_note: note || null });
+    if (r.error) { var e = new Error(r.error.message); e.permanent = r.error.code === '42501' || r.error.code === 'P0001'; throw e; }
+    return r.data;
+  };
+  SupabaseBackend.prototype.revokeInvite = async function (email) {
+    var r = await this.sb.rpc('fin_revoke_invite', { p_email: email });
+    if (r.error) throw r.error;
+  };
   SupabaseBackend.prototype.subscribe = function (cb, status, module) {
     var table = module === 'hr' ? 'hr_cells' : 'fin_cells';
     var ch = this.sb.channel(table).on('postgres_changes', { event: '*', schema: 'public', table: table }, function (p) {
@@ -129,7 +159,7 @@
   };
   DemoBackend.prototype.onAuth = function () {};
   DemoBackend.prototype.session = async function () { return { user: { id: 'demo', email: 'demo@this-browser' } }; };
-  DemoBackend.prototype.me = async function () { return { id: 'demo', email: 'demo@this-browser', name: 'Demo user', role: 'admin' }; };
+  DemoBackend.prototype.me = async function () { return { id: 'demo', email: 'demo@this-browser', name: 'Demo user', role: 'admin', modules: ['finance', 'hr', 'people'] }; };
   DemoBackend.prototype.signOut = async function () {};
   DemoBackend.prototype.setPassword = async function () {};
   DemoBackend.prototype.verifyPassword = async function () { return true; };
@@ -159,9 +189,13 @@
     });
     return rows.slice(offset, offset + limit);
   };
-  DemoBackend.prototype.members = async function () { return [{ user_id: 'demo', email: 'demo@this-browser', full_name: 'Demo user', role: 'admin', created_at: new Date().toISOString() }]; };
+  DemoBackend.prototype.members = async function () { return [{ user_id: 'demo', email: 'demo@this-browser', full_name: 'Demo user', role: 'admin', modules: ['finance', 'hr', 'people'], created_at: new Date().toISOString() }]; };
   DemoBackend.prototype.setRole = async function () { throw new Error('Not available in demo mode.'); };
+  DemoBackend.prototype.setAccess = async function () { throw new Error('Not available in demo mode.'); };
   DemoBackend.prototype.removeMember = async function () { throw new Error('Not available in demo mode.'); };
+  DemoBackend.prototype.listInvites = async function () { return []; };
+  DemoBackend.prototype.invite = async function () { throw new Error('Not available in demo mode.'); };
+  DemoBackend.prototype.revokeInvite = async function () { throw new Error('Not available in demo mode.'); };
   DemoBackend.prototype.subscribe = function () { return null; };
   DemoBackend.prototype.wipe = function () { localStorage.removeItem(this.key); };
   DemoBackend.prototype.listEmployees = async function () { return JSON.parse(localStorage.getItem('fin-demo-emp') || '[]'); };

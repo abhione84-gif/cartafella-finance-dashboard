@@ -93,6 +93,24 @@ label { display: block; font-size: 12px; color: var(--text-muted); font-weight: 
 .header { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: #fff; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 20; }
 .header .brand { display: flex; align-items: center; gap: 10px; color: var(--navy); font-weight: 600; font-size: 15px; }
 .header-right { display: flex; align-items: center; gap: 10px; }
+.mod-chips-wrap { min-width: 220px; }
+.mod-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.mod-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px; font-size: 12px; font-weight: 500; cursor: pointer; background: #fff; color: var(--text-muted); transition: all 0.12s; }
+.mod-chip input { margin: 0; cursor: pointer; }
+.mod-chip.on { font-weight: 600; }
+.mod-chip.disabled { opacity: 0.6; cursor: not-allowed; }
+.mod-chip.disabled input { cursor: not-allowed; }
+.invite-row { display: grid; grid-template-columns: 1.6fr 0.9fr 2fr auto; gap: 10px; align-items: end; }
+.invite-row .field.grow { min-width: 0; }
+.invite-pending { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--border); }
+.invite-pending:first-of-type { border-top: 0; }
+.member-row { display: grid; grid-template-columns: 1.8fr 1fr 2.2fr auto; gap: 14px; align-items: center; padding: 10px 0; border-top: 1px solid var(--border); }
+.member-row:first-of-type { border-top: 0; }
+.member-role select, .member-role label, .member-mods label { display: block; margin-bottom: 4px; }
+@media (max-width: 700px) {
+  .invite-row { grid-template-columns: 1fr; }
+  .member-row { grid-template-columns: 1fr; gap: 6px; }
+}
 .module-switcher { display: flex; gap: 4px; margin-left: 12px; padding: 3px; background: var(--navy-50); border-radius: 8px; }
 .module-switcher .mod-btn { font: inherit; font-size: 13px; font-weight: 500; padding: 6px 14px; border: 1px solid transparent; background: transparent; color: var(--text-muted); border-radius: 5px; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
 .module-switcher .mod-btn:hover { background: #fff; color: var(--navy); }

@@ -8,7 +8,7 @@
   var backend = window.XBackend.create(CFG);
 
   var MODULES = {
-    finance: { label: 'Finance', color: '#0B2545', model: 'data/model.json?v=5', pages: window.FinancePages, nav: [
+    finance: { label: 'Finance', color: '#0B2545', model: 'data/model.json?v=7', pages: window.FinancePages, nav: [
       { group: 'Overview', items: [
         { id: 'Dashboard', label: 'Dashboard', icon: '▣' },
         { id: 'Period Reports', label: 'Period reports', icon: '📅' },
@@ -37,7 +37,7 @@
         { id: 'Settings', label: 'Settings', icon: '⚙️' }
       ] }
     ] },
-    hr: { label: 'HR / Recruitment', color: '#7C3AED', model: 'data/hr-model.json?v=5', pages: window.HRPages, nav: [
+    hr: { label: 'HR / Recruitment', color: '#7C3AED', model: 'data/hr-model.json?v=7', pages: window.HRPages, nav: [
       { group: 'Overview', items: [
         { id: 'Dashboard', label: 'Dashboard', icon: '▣' },
         { id: 'Process Map', label: 'Process map', icon: '🗺' },
@@ -111,7 +111,7 @@
     $('#auth-submit').textContent = { signin: 'Sign in', signup: 'Create account', forgot: 'Send reset link', newpass: 'Set new password' }[mode];
     $('#auth-title').textContent = { signin: 'Sign in', signup: 'Create an account', forgot: 'Reset your password', newpass: 'Choose a new password' }[mode];
     $('#auth-links').innerHTML = mode === 'signin'
-      ? '<a href="#" data-m="forgot">Forgot password?</a> · <a href="#" data-m="signup">Create an account</a>'
+      ? '<a href="#" data-m="forgot">Forgot password?</a> · <span class="muted">Access is invite-only — ask your admin</span>'
       : '<a href="#" data-m="signin">Back to sign in</a>';
     $('#auth-msg').textContent = ''; $('#auth-msg').className = 'msg';
     $('#auth-pass').autocomplete = mode === 'signin' ? 'current-password' : 'new-password';
@@ -124,15 +124,9 @@
     try {
       if (mode === 'signin') { await backend.signIn(email, pw); await start(); }
       else if (mode === 'signup') {
-        if (pw.length < 8) throw new Error('Use at least 8 characters for the password.');
-        try {
-          var r = await backend.signUp(email, pw, $('#auth-name').value.trim());
-          if (r.session) await start();
-          else { msg.className = 'msg ok'; msg.textContent = 'Account created. Check your email to confirm it, then sign in. An admin will then give you access.'; }
-        } catch (ex) {
-          if (ex.duplicate) { msg.className = 'msg err'; msg.innerHTML = 'An account with this email already exists. Use <a href="#" data-m="forgot">Forgot password?</a> to reset it, or ask your admin to reset it for you.'; }
-          else throw ex;
-        }
+        // Self-signup is disabled — access is invite-only. This branch stays as a safety net
+        // for very old links; ordinarily the UI never puts the form in signup mode.
+        throw new Error('Access is invite-only. Ask an admin to invite you.');
       } else if (mode === 'forgot') {
         await backend.resetPassword(email);
         msg.className = 'msg ok'; msg.textContent = 'If that email has an account, a reset link is on its way.';
@@ -146,9 +140,10 @@
   }
 
   // ---------- Start-up ----------
-  async function loadModels() {
-    for (var mk of ['finance', 'hr']) {
-      if (state.models[mk] || !MODULES[mk].model) continue;
+  async function loadModels(only) {
+    var wanted = only || ['finance', 'hr'];
+    for (var mk of wanted) {
+      if (state.models[mk] || !MODULES[mk] || !MODULES[mk].model) continue;
       $('#loading-text').textContent = 'Loading ' + MODULES[mk].label + ' workbook…';
       var r = await fetch(MODULES[mk].model, { cache: 'no-cache' });
       if (!r.ok) throw new Error('Could not load ' + MODULES[mk].model);
@@ -172,17 +167,19 @@
       if (!me) { authView('signin'); return; }
       state.me = me;
       if (me.role === 'pending' || me.role === 'none') { $('#pending-email').textContent = me.email; show('#pending-page'); return; }
-      await loadModels();
-      await loadModuleData('finance');
-      await loadModuleData('hr');
+      var allowed = allowedModules();
+      if (!allowed.length) { $('#pending-email').textContent = me.email; show('#pending-page'); return; }
+      await loadModels(allowed);
+      if (allowed.indexOf('finance') >= 0) await loadModuleData('finance');
+      if (allowed.indexOf('hr') >= 0)      await loadModuleData('hr');
       buildApp();
       if (!backend.demo) {
-        backend.subscribe(function (sheet, addr, v) { onRemote('finance', sheet, addr, v); }, null, 'finance');
-        backend.subscribe(function (sheet, addr, v) { onRemote('hr', sheet, addr, v); }, null, 'hr');
+        if (allowed.indexOf('finance') >= 0) backend.subscribe(function (sheet, addr, v) { onRemote('finance', sheet, addr, v); }, null, 'finance');
+        if (allowed.indexOf('hr') >= 0)      backend.subscribe(function (sheet, addr, v) { onRemote('hr', sheet, addr, v); }, null, 'hr');
       }
       show('#app');
       var p = loadPrefs();
-      switchModule(p.module || 'finance', p.page);
+      switchModule(allowed.indexOf(p.module) >= 0 ? p.module : allowed[0], p.page);
     } catch (ex) {
       console.error(ex);
       show('#loading');
@@ -216,9 +213,19 @@
     setStatus('ok', backend.demo ? 'Demo (browser only)' : 'All saved');
   }
 
+  function allowedModules() {
+    if (!state.me) return [];
+    if (state.me.role === 'admin') return Object.keys(MODULES);
+    var mods = state.me.modules || [];
+    return Object.keys(MODULES).filter(function (mk) { return mods.indexOf(mk) >= 0; });
+  }
+
   function renderModuleSwitcher() {
     var bar = $('#module-switcher'); bar.innerHTML = '';
-    Object.keys(MODULES).forEach(function (mk) {
+    var allowed = allowedModules();
+    if (allowed.length <= 1) { bar.style.display = 'none'; return; }
+    bar.style.display = '';
+    allowed.forEach(function (mk) {
       var m = MODULES[mk];
       var b = el('button', { class: 'mod-btn' + (state.module === mk ? ' active' : ''), onClick: function () { switchModule(mk); },
         style: state.module === mk ? { background: m.color, color: '#fff', borderColor: m.color } : {} }, [el('span', { text: m.label })]);
@@ -227,7 +234,8 @@
   }
 
   function switchModule(mk, page) {
-    if (!MODULES[mk]) mk = 'finance';
+    var allowed = allowedModules();
+    if (allowed.indexOf(mk) < 0) mk = allowed[0] || 'finance';
     state.module = mk;
     var p = loadPrefs(); p.module = mk; savePrefs(p);
     renderModuleSwitcher();
@@ -448,29 +456,121 @@
   function fmtVal(v) { if (v === null || v === undefined) return '(empty)'; if (typeof v === 'number') return U.fmtNum(v); if (typeof v === 'object') return JSON.stringify(v).slice(0, 60); return String(v); }
 
   // ---------- Users ----------
+  var ALL_MODULES = ['finance', 'hr', 'people'];
+  function moduleChips(mods, mk, onChange, disabled) {
+    var chips = el('div', { class: 'mod-chips' });
+    ALL_MODULES.forEach(function (m) {
+      var on = (mods || []).indexOf(m) >= 0;
+      var chip = el('label', { class: 'mod-chip' + (on ? ' on' : '') + (disabled ? ' disabled' : ''),
+        style: on && MODULES[m] ? { background: MODULES[m].color + '22', borderColor: MODULES[m].color, color: MODULES[m].color } : {} });
+      chip.appendChild(el('input', { type: 'checkbox', checked: on, disabled: disabled,
+        onChange: function (e) {
+          var next = (mods || []).slice();
+          if (e.target.checked) { if (next.indexOf(m) < 0) next.push(m); }
+          else next = next.filter(function (x) { return x !== m; });
+          onChange(next);
+        } }));
+      chip.appendChild(el('span', { text: MODULES[m] ? MODULES[m].label : m }));
+      chips.appendChild(chip);
+    });
+    return chips;
+  }
   async function openUsers() {
     $('#users-panel').hidden = false;
-    var body = $('#users-rows'); body.innerHTML = '<tr><td colspan="4" class="muted">Loading…</td></tr>';
+    renderUsersPanel();
+  }
+  async function renderUsersPanel() {
+    var panel = $('#users-panel .panel-body');
+    panel.innerHTML = '<p class="muted">Loading…</p>';
     try {
-      var list = await backend.members();
-      body.innerHTML = '';
-      list.forEach(function (u) {
-        var tr = el('tr', {}, [
-          el('td', {}, [el('div', {}, [el('b', { text: u.full_name || u.email.split('@')[0] })]), el('div', { class: 'small muted', text: u.email })]),
-          el('td', { class: 'small', text: fmtTime(u.created_at) }),
-          el('td', {}, [el('select', { dataset: { role: u.user_id }, disabled: u.user_id === state.me.id,
-            onChange: async function (e) { try { await backend.setRole(u.user_id, e.target.value); toast('Role updated', 'success'); } catch (ex) { toast(ex.message, 'error'); openUsers(); } } },
-            ['pending', 'viewer', 'editor', 'admin'].map(function (r) { return el('option', { value: r, text: r, selected: r === u.role }); })
-          )]),
-          el('td', {}, [u.user_id === state.me.id ? el('span', { class: 'muted small', text: '(you)' }) :
-            el('button', { class: 'btn ghost sm', text: 'Remove', onClick: async function () {
-              if (!(await modal('Remove user', '<p>Remove this user\'s access? Their past changes stay in the history.</p>', [{ label: 'Cancel', value: false }, { label: 'Remove', value: true, danger: true }]))) return;
-              try { await backend.removeMember(u.user_id); toast('User removed', 'success'); openUsers(); } catch (ex) { toast(ex.message, 'error'); }
-            } })])
-        ]);
-        body.appendChild(tr);
+      var members = await backend.members();
+      var invites = [];
+      try { invites = await backend.listInvites(); } catch (e) { /* invites table may not exist yet */ }
+      panel.innerHTML = '';
+      panel.appendChild(el('p', { class: 'muted', text: 'Invite someone by email and tick the modules they should see. They\'ll sign up at the login page using the same email. Admins see every module automatically.' }));
+
+      // Invite form
+      var invCard = el('div', { class: 'card', style: { marginBottom: '14px' } });
+      invCard.appendChild(el('h2', { text: 'Invite a new user', style: { marginBottom: '10px' } }));
+      var invModules = [];
+      var invRow = el('div', { class: 'invite-row' });
+      var invEmail = el('input', { type: 'email', placeholder: 'person@cartafella.com' });
+      var invRole = el('select', {},
+        ['viewer', 'editor', 'admin'].map(function (r) { return el('option', { value: r, text: r, selected: r === 'editor' }); }));
+      var invChipsWrap = el('div', { class: 'mod-chips-wrap' });
+      function renderInvChips() { invChipsWrap.innerHTML = ''; invChipsWrap.appendChild(moduleChips(invModules, null, function (n) { invModules = n; })); }
+      renderInvChips();
+      var invBtn = el('button', { class: 'btn primary', text: 'Send invite', onClick: async function () {
+        var email = invEmail.value.trim(), role = invRole.value;
+        if (!email) { toast('Enter an email', 'error'); return; }
+        if (role !== 'admin' && invModules.length === 0) { toast('Pick at least one module', 'error'); return; }
+        try { await backend.invite(email, role, role === 'admin' ? ALL_MODULES : invModules, null);
+          toast('Invite created — the user can now sign up with ' + email, 'success');
+          invEmail.value = ''; invModules = []; renderUsersPanel();
+        } catch (ex) { toast(ex.message || 'Could not invite', 'error'); }
+      } });
+      invRow.appendChild(el('div', { class: 'field' }, [el('label', { text: 'Email' }), invEmail]));
+      invRow.appendChild(el('div', { class: 'field' }, [el('label', { text: 'Role' }), invRole]));
+      invRow.appendChild(el('div', { class: 'field grow' }, [el('label', { text: 'Modules' }), invChipsWrap]));
+      invRow.appendChild(el('div', { class: 'field' }, [el('label', {}, [el('span', { text: ' ' })]), invBtn]));
+      invCard.appendChild(invRow);
+      panel.appendChild(invCard);
+
+      // Pending invites
+      if (invites.length) {
+        var invListCard = el('div', { class: 'card', style: { marginBottom: '14px' } });
+        invListCard.appendChild(el('h2', { text: 'Pending invites (' + invites.length + ')', style: { marginBottom: '10px' } }));
+        invites.forEach(function (i) {
+          var row = el('div', { class: 'invite-pending' });
+          row.appendChild(el('div', {}, [el('b', { text: i.email }), el('div', { class: 'small muted', text: i.role + ' · ' + (i.modules || []).join(', ') + ' · invited ' + fmtTime(i.invited_at) })]));
+          row.appendChild(el('button', { class: 'btn ghost sm', text: 'Revoke', onClick: async function () {
+            if (!(await modal('Revoke invite', '<p>Revoke invite for <b>' + U.esc(i.email) + '</b>?</p>', [{ label: 'Cancel', value: false }, { label: 'Revoke', value: true, danger: true }]))) return;
+            try { await backend.revokeInvite(i.email); toast('Invite revoked', 'success'); renderUsersPanel(); } catch (ex) { toast(ex.message, 'error'); }
+          } }));
+          invListCard.appendChild(row);
+        });
+        panel.appendChild(invListCard);
+      }
+
+      // Members list
+      var memCard = el('div', { class: 'card' });
+      memCard.appendChild(el('h2', { text: 'Active users (' + members.length + ')', style: { marginBottom: '10px' } }));
+      members.forEach(function (u) {
+        var isSelf = u.user_id === state.me.id;
+        var mods = (u.modules || []).slice();
+        var row = el('div', { class: 'member-row' });
+        row.appendChild(el('div', { class: 'member-who' }, [
+          el('div', {}, [el('b', { text: u.full_name || u.email.split('@')[0] }), isSelf ? el('span', { class: 'pill', text: 'you', style: { marginLeft: '6px' } }) : null]),
+          el('div', { class: 'small muted', text: u.email + ' · joined ' + fmtTime(u.created_at) })
+        ]));
+        var roleSel = el('select', { disabled: isSelf, onChange: function (e) { persistAccess(u.user_id, e.target.value, e.target.value === 'admin' ? ALL_MODULES : mods); } },
+          ['pending', 'viewer', 'editor', 'admin'].map(function (r) { return el('option', { value: r, text: r, selected: r === u.role }); }));
+        row.appendChild(el('div', { class: 'member-role' }, [el('label', { class: 'small muted', text: 'Role' }), roleSel]));
+        var chipsWrap = el('div', { class: 'member-mods' }, [el('label', { class: 'small muted', text: 'Modules' })]);
+        function renderMemberChips() {
+          var existing = chipsWrap.querySelector('.mod-chips'); if (existing) existing.remove();
+          chipsWrap.appendChild(moduleChips(u.role === 'admin' ? ALL_MODULES : mods, null, function (next) {
+            mods = next; persistAccess(u.user_id, roleSel.value, roleSel.value === 'admin' ? ALL_MODULES : mods);
+          }, u.role === 'admin' || isSelf));
+        }
+        renderMemberChips();
+        row.appendChild(chipsWrap);
+        row.appendChild(el('div', { class: 'member-actions' },
+          isSelf ? [el('span', { class: 'small muted', text: '—' })]
+                 : [el('button', { class: 'btn ghost sm', text: 'Remove', onClick: async function () {
+                     if (!(await modal('Remove user', '<p>Remove <b>' + U.esc(u.email) + '</b>? Their past changes stay in the history.</p>', [{ label: 'Cancel', value: false }, { label: 'Remove', value: true, danger: true }]))) return;
+                     try { await backend.removeMember(u.user_id); toast('User removed', 'success'); renderUsersPanel(); } catch (ex) { toast(ex.message, 'error'); }
+                   } })]));
+        memCard.appendChild(row);
       });
-    } catch (ex) { body.innerHTML = '<tr><td colspan="4" class="muted">' + U.esc(ex.message) + '</td></tr>'; }
+      panel.appendChild(memCard);
+    } catch (ex) {
+      panel.innerHTML = '<p class="muted">' + U.esc(ex.message) + '</p>';
+    }
+  }
+  async function persistAccess(userId, role, modules) {
+    try { await backend.setAccess(userId, role, modules); setStatus('ok', 'Access updated'); }
+    catch (ex) { toast(ex.message || 'Could not update access', 'error'); renderUsersPanel(); }
   }
 
   // ---------- Change password ----------

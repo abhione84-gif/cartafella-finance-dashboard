@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Cartafella Operations</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%23B71F29%22/%3E%3Ctext x=%2216%22 y=%2222%22 font-size=%2218%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Arial%22 font-weight=%22bold%22%3EC%3C/text%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/app.css?v=6">
+<link rel="stylesheet" href="css/app.css?v=7">
 </head>
 <body>
 
@@ -83,11 +83,9 @@
   </div>
 </aside>
 
-<aside id="users-panel" class="panel" hidden style="width:min(640px,100%)">
-  <div class="panel-head"><h2>Users</h2><button class="x" id="users-close" title="Close">×</button></div>
-  <div class="panel-body"><p class="muted">People sign up on the login page, then appear as <b>pending</b>. Give each one a role: <b>viewer</b> (read only), <b>editor</b> (enter data), <b>admin</b> (also manage users).</p>
-    <div class="tbl-wrap" style="margin-top:14px"><table class="tbl"><thead><tr><th>User</th><th>Joined</th><th>Role</th><th></th></tr></thead><tbody id="users-rows"></tbody></table></div>
-  </div>
+<aside id="users-panel" class="panel" hidden style="width:min(780px,100%)">
+  <div class="panel-head"><h2>Users &amp; access</h2><button class="x" id="users-close" title="Close">×</button></div>
+  <div class="panel-body"></div>
 </aside>
 
 <div id="modal" class="modal" hidden><div class="modal-card"><h2 id="modal-title"></h2><div id="modal-body"></div><div id="modal-buttons" class="modal-buttons"></div></div></div>
@@ -95,17 +93,17 @@
 <div id="drawer-root"></div>
 <input id="import-file" type="file" accept=".xlsx,.xlsm" hidden>
 
-<script src="js/config.js?v=6"></script>
+<script src="js/config.js?v=7"></script>
 <script src="vendor/supabase.js"></script>
 <script src="vendor/chart.umd.min.js"></script>
 <script src="vendor/exceljs.min.js" defer></script>
-<script src="js/fmt.js?v=6"></script>
-<script src="js/engine.js?v=6"></script>
-<script src="js/backend.js?v=6"></script>
-<script src="js/components.js?v=6"></script>
-<script src="js/pages.js?v=6"></script>
-<script src="js/hr-pages.js?v=6"></script>
-<script src="js/people-pages.js?v=6"></script>
-<script src="js/app.js?v=6"></script>
+<script src="js/fmt.js?v=7"></script>
+<script src="js/engine.js?v=7"></script>
+<script src="js/backend.js?v=7"></script>
+<script src="js/components.js?v=7"></script>
+<script src="js/pages.js?v=7"></script>
+<script src="js/hr-pages.js?v=7"></script>
+<script src="js/people-pages.js?v=7"></script>
+<script src="js/app.js?v=7"></script>
 </body>
 </html>
