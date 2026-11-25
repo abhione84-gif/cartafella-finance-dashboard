@@ -780,6 +780,7 @@
     $('#menu-import').onclick = function (e) { e.preventDefault(); $('#user-menu').hidden = true; $('#import-file').value = ''; $('#import-file').click(); };
     $('#import-file').onchange = function () { var f = this.files[0]; if (f) importExcel(f); };
     $('#menu-clear-example').onclick = function (e) { e.preventDefault(); $('#user-menu').hidden = true; removeExamples(); };
+    $('#menu-guide').onclick = function (e) { e.preventDefault(); $('#user-menu').hidden = true; if (window.UserGuide) window.UserGuide.open(); };
     $('#menu-password').onclick = function (e) { e.preventDefault(); $('#user-menu').hidden = true; openChangePassword(); };
     $('#menu-toggle').onclick = function () { $('#sidebar').classList.toggle('open'); };
     $('#hist-close').onclick = function () { $('#history').hidden = true; };
