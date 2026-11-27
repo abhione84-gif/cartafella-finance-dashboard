@@ -311,9 +311,9 @@
     state.currentPage = pageId;
     document.querySelectorAll('.nav-item').forEach(function (a) { a.classList.toggle('active', a.dataset.page === pageId); });
     var main = $('#main'); main.innerHTML = '';
-    // Special item: User guide lives under Settings in every module's sidebar
+    // Special item: User guide lives under Setup in every module's sidebar
     if (pageId === '__guide__') {
-      if (window.UserGuide) { main.classList.add('guide-host'); window.UserGuide.render(main); }
+      if (window.UserGuide) { main.classList.add('guide-host'); window.UserGuide.render(main, { me: state.me }); }
       return;
     }
     main.classList.remove('guide-host');

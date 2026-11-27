@@ -448,8 +448,11 @@
     container.appendChild(page);
   }
 
-  function downloadPDF() {
-    // Build one hidden print-only container with every section back-to-back, then print.
+  function downloadPDF(me) {
+    // Build one hidden print-only container with every section the user is
+    // allowed to see, back-to-back, then open the print dialog.
+    var sections = visibleSections(me);
+    var ids = Object.keys(sections);
     var oldPrintable = document.getElementById('guide-print');
     if (oldPrintable) oldPrintable.remove();
     var printable = h('div', { id: 'guide-print', class: 'guide-print' });
@@ -462,12 +465,12 @@
     // TOC
     var toc = h('div', { class: 'guide-print-toc' }, [h('h2', {}, 'Contents')]);
     var tocList = h('ol', {});
-    Object.keys(SECTIONS).forEach(function (id) { tocList.appendChild(h('li', {}, SECTIONS[id].title)); });
+    ids.forEach(function (id) { tocList.appendChild(h('li', {}, sections[id].title)); });
     toc.appendChild(tocList);
     printable.appendChild(toc);
-    // All sections, each on its own page
-    Object.keys(SECTIONS).forEach(function (id) {
-      var s = SECTIONS[id];
+    // All allowed sections, each on its own page
+    ids.forEach(function (id) {
+      var s = sections[id];
       var section = h('section', { class: 'guide-print-section' });
       section.innerHTML = '<h1 class="guide-print-chapter">' + s.title + '</h1>' + s.body;
       printable.appendChild(section);
