@@ -69,7 +69,7 @@
       <h2>Download and import</h2>
       <ul>
         <li><b>Download data</b> (avatar menu) — exports the current module as a file you can keep or share, with its formatting and totals intact. For the People module, use each tab's own download button instead.</li>
-        <li><b>Import data</b> (avatar menu, editors + admins) — pick a file of the same module and the app will detect every changed value and preview the difference before saving. Only values are imported; the module's own calculations re-run on top.</li>
+        <li><b>Import data</b> (avatar menu, everyone with the module) — pick a file of the same module and the app will detect every changed value and preview the difference before saving. Only values are imported; the module's own calculations re-run on top.</li>
       </ul>
 
       <h2>Keyboard tips</h2>
@@ -170,10 +170,10 @@
       <p>Documentation tabs — definitions of how key figures are calculated and worked examples. Read-only by convention.</p>
 
       <h2>Editing values</h2>
-      <p>If you have <b>editor</b> or <b>admin</b> access to the Finance module, click any white cell to edit it. Press Enter to commit. Grey cells are calculated and can't be changed directly — change their inputs instead. Negative numbers may show in red depending on the cell's number format.</p>
+      <p>Anyone with access to the Finance module can edit. Click any white cell, type the new value and press Enter to commit. Grey cells are calculated and can't be changed directly — change their inputs instead. Negative numbers may show in red depending on the cell's number format.</p>
 
       <h2>Removing example rows</h2>
-      <p>Editors / admins see <i>Remove example data</i> in the avatar menu. It scans the current module for rows tagged EXAMPLE and clears their inputs in one go. Use once, after your own data is in.</p>
+      <p>Everyone with the module see <i>Remove example data</i> in the avatar menu. It scans the current module for rows tagged EXAMPLE and clears their inputs in one go. Use once, after your own data is in.</p>
     `
   };
 
@@ -199,7 +199,7 @@
 
       <h3>Requirements</h3>
       <p>Every open or closed requirement. Columns: Req #, received date, client, role, service type, positions, recruiter, stage, days open, status.</p>
-      <p><b>Add requirement</b> (editors + admins) opens a form:</p>
+      <p><b>Add requirement</b> (everyone with the module) opens a form:</p>
       <ul>
         <li><b>Requirement ID</b>, <b>Received date</b>, <b>Client</b> (pulled from Settings), <b>Client contact</b>, <b>Service type</b> (Permanent, Outsourced, Contract — from Settings).</li>
         <li><b>Track</b>, <b>Role</b>, <b>Positions</b>, <b>Location</b>, <b>Priority</b> (High / Medium / Low).</li>
@@ -257,7 +257,7 @@
 
       <h2>Employees</h2>
       <p>The company roster. KPI tiles at the top show total employees, Active, On leave and Pre-joining. Columns in the table: Code, Name (with email), Position, Department, Join date, Type pill (Permanent / Fixed-term / Contract / Intern / Outsourced), Status pill, Annual leave balance.</p>
-      <p><b>Add employee</b> (editors + admins) opens a form with:</p>
+      <p><b>Add employee</b> (everyone with the module) opens a form with:</p>
       <ul>
         <li><b>Identity</b> — Employee code, Full name, Work email, Mobile, Nationality, Gender, Date of birth.</li>
         <li><b>Employment</b> — Join date, Exit date, Position, Department, Team, Reports to (manager dropdown), Employment type, Work location, Client (for outsourced), Contract ID.</li>
@@ -272,7 +272,7 @@
       <h2>Leave requests</h2>
       <p>End-to-end leave workflow. KPIs: pending approval, approved this year, total approved days, on leave today. Columns: Employee, Type (pill), From, To, Days, Reason, Status, Requested on.</p>
 
-      <h3>Submitting a request (editors + admins)</h3>
+      <h3>Submitting a request (everyone with the module)</h3>
       <p>Click <b>Request leave</b>:</p>
       <ul>
         <li><b>Employee</b> — only Active and On-leave employees show.</li>
@@ -303,11 +303,11 @@
       <h2>Roles and modules</h2>
       <p>A user has one <b>role</b> and zero or more <b>modules</b>:</p>
       <ul>
-        <li><b>Viewer</b> — can read the modules they're given; can't edit anything.</li>
-        <li><b>Editor</b> — can read and edit input cells / records in the modules they're given.</li>
-        <li><b>Admin</b> — can do everything, in every module, regardless of module list (the module chips are locked on admin rows).</li>
+        <li><b>Viewer</b> — can read and edit records in the modules they're given, but can't approve leave, delete employee records, or manage other users.</li>
+        <li><b>Editor</b> — same read / edit access as viewer today. Kept as a role label; may carry more permissions in future.</li>
+        <li><b>Admin</b> — can do everything, in every module, including approving leave, deleting records and managing users. Module chips are locked on admin rows.</li>
       </ul>
-      <p>Modules are <b>Finance</b>, <b>HR</b>, <b>People</b>. A finance editor can't see or save anything in HR; an HR editor can't see or save anything in Finance. Enforced in the database by row-level security, not just in the UI.</p>
+      <p>Modules are <b>Finance</b>, <b>HR</b>, <b>People</b>. A finance user can't see or save anything in HR; an HR user can't see or save anything in Finance. Enforced in the database by row-level security, not just in the UI.</p>
 
       <h2>Inviting a user</h2>
       <p>Avatar → <i>Manage users</i>. In the <b>Invite a new user</b> card:</p>

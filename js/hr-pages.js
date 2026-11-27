@@ -127,7 +127,7 @@
       container.appendChild(el('div', { class: 'page-head' }, [
         el('div', {}, [el('h1', { text: cfg.title }), cfg.description ? el('div', { class: 'sub', text: cfg.description }) : null])
       ]));
-      var canEdit = ctx.me && (ctx.me.role === 'editor' || ctx.me.role === 'admin');
+      var canEdit = ctx.me && ctx.me.role && ctx.me.role !== 'pending' && ctx.me.role !== 'none';
       var tableEl = U.DataTable({
         label: cfg.addLabel ? cfg.addLabel.toLowerCase() : 'records',
         rows: function () { return tableRows(book, cfg.table); },

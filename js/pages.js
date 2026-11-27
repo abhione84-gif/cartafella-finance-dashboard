@@ -79,7 +79,7 @@
       head.appendChild(el('div', {}, [el('h1', { text: cfg.title }), cfg.description ? el('div', { class: 'sub', text: cfg.description }) : null]));
       container.appendChild(head);
 
-      var canEdit = ctx.me && (ctx.me.role === 'editor' || ctx.me.role === 'admin');
+      var canEdit = ctx.me && ctx.me.role && ctx.me.role !== 'pending' && ctx.me.role !== 'none';
 
       var tableEl = U.DataTable({
         label: cfg.addLabel ? cfg.addLabel.toLowerCase() : 'records',
@@ -554,7 +554,7 @@
     var sVal = cellOf(book, 'Daily Fund Flow', 'M3'); // user input start
     var eVal = cellOf(book, 'Daily Fund Flow', 'O3'); // user input end
     var container = el('div', {});
-    var canEdit = ctx.me && (ctx.me.role === 'editor' || ctx.me.role === 'admin');
+    var canEdit = ctx.me && ctx.me.role && ctx.me.role !== 'pending' && ctx.me.role !== 'none';
     container.appendChild(el('div', { class: 'page-head' }, [el('div', {}, [el('h1', { text: 'Daily fund flow' }),
       el('div', { class: 'sub', text: 'Day-by-day cash movements and running balance' })])]));
 
@@ -574,7 +574,7 @@
     container.appendChild(selRow);
 
     function setRange(cellAddr, value) {
-      if (!canEdit) { ctx.toast('You need editor access to change the view range.', 'warn'); return; }
+      if (!canEdit) { ctx.toast('You do not have access to change this.', 'warn'); return; }
       var si = book.byName['Daily Fund Flow']; var rc = addr(cellAddr);
       var old = book.getInput(si, rc[0], rc[1]);
       ctx.save([{ si: si, r: rc[0], c: rc[1], old: old, value: value || null }], 'DFF range');
@@ -899,7 +899,7 @@
   // ---------- BUDGET ----------
   function BudgetPage(ctx) {
     var book = ctx.book;
-    var canEdit = ctx.me && (ctx.me.role === 'editor' || ctx.me.role === 'admin');
+    var canEdit = ctx.me && ctx.me.role && ctx.me.role !== 'pending' && ctx.me.role !== 'none';
     var container = el('div', {});
     container.appendChild(el('div', { class: 'page-head' }, [el('div', {}, [el('h1', { text: 'Budget' }),
       el('div', { class: 'sub', text: 'Monthly revenue, direct cost and overhead budget per vertical. YTD actuals come from the Ledger.' })])]));
@@ -969,7 +969,7 @@
   // ---------- BALANCE SHEET ----------
   function BalanceSheet(ctx) {
     var book = ctx.book;
-    var canEdit = ctx.me && (ctx.me.role === 'editor' || ctx.me.role === 'admin');
+    var canEdit = ctx.me && ctx.me.role && ctx.me.role !== 'pending' && ctx.me.role !== 'none';
     var container = el('div', {});
     container.appendChild(el('div', { class: 'page-head' }, [el('div', {}, [el('h1', { text: 'Balance sheet' }),
       el('div', { class: 'sub', text: 'Year-end balances per year. Opening balances must be entered; later years are optional.' })])]));
@@ -1034,7 +1034,7 @@
   // ---------- MASTERS ----------
   function Masters(ctx) {
     var book = ctx.book;
-    var canEdit = ctx.me && (ctx.me.role === 'editor' || ctx.me.role === 'admin');
+    var canEdit = ctx.me && ctx.me.role && ctx.me.role !== 'pending' && ctx.me.role !== 'none';
     var container = el('div', {});
     container.appendChild(el('div', { class: 'page-head' }, [el('div', {}, [el('h1', { text: 'Masters' }),
       el('div', { class: 'sub', text: 'Shared lists used by the drop-downs: verticals, clients, consultants, suppliers, bank accounts, categories.' })])]));

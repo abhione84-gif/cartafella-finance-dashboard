@@ -14,7 +14,7 @@
 
   function Employees(ctx) {
     var container = el('div', {});
-    var canEdit = ctx.me && (ctx.me.role === 'editor' || ctx.me.role === 'admin');
+    var canEdit = ctx.me && ctx.me.role && ctx.me.role !== 'pending' && ctx.me.role !== 'none';
     var canDelete = ctx.me && ctx.me.role === 'admin';
     var employees = [];
     var tableEl = null, kpiEl = null;
@@ -133,7 +133,7 @@
   function LeaveRequests(ctx) {
     var container = el('div', {});
     var isAdmin = ctx.me && ctx.me.role === 'admin';
-    var canEdit = ctx.me && (ctx.me.role === 'editor' || ctx.me.role === 'admin');
+    var canEdit = ctx.me && ctx.me.role && ctx.me.role !== 'pending' && ctx.me.role !== 'none';
     var leaves = [], employees = [];
 
     container.appendChild(el('div', { class: 'page-head' }, [
