@@ -30,7 +30,7 @@
     icon: '🚀',
     body: `
       <h2>What this app is</h2>
-      <p>Cartafella Analytics is the web version of your Finance, HR / Recruitment and People workbooks. It keeps every tab from the Excel source plus a few web-only screens for Employees and Leave. The data lives in one shared database — everyone signed in sees the same numbers in real time, and every change is recorded in the Change history.</p>
+      <p>Cartafella Analytics is your shared workspace for Finance, HR / Recruitment and People. Everyone signed in sees the same numbers in real time, and every change is recorded in the Change history so you can always trace who changed what.</p>
 
       <h2>Signing in</h2>
       <p>Access is <b>invite only</b>. If you have never been invited, the login page will accept your email and password but the database will refuse to create the account. Ask an admin (currently <b>abhilash@cartafella.com</b>) to invite you first with the right role and modules. Once invited, come back to the login page, type the invited email, set a password of at least 8 characters, and you're in.</p>
@@ -41,7 +41,7 @@
 
       <h2>The screen at a glance</h2>
       <ul>
-        <li><b>Top bar</b> — brand mark, module switcher (only shows modules you can access), workbook filters (Finance only), save status chip, your avatar.</li>
+        <li><b>Top bar</b> — brand mark, module switcher (only shows modules you can access), page filters (Finance only), save status chip, your avatar.</li>
         <li><b>Left sidebar</b> — tabs for the current module. Click any tab to open it; the sidebar hides on narrow screens — tap the ☰ icon to toggle.</li>
         <li><b>Main area</b> — the page you picked.</li>
       </ul>
@@ -49,8 +49,8 @@
       <h2>Modules you can see</h2>
       <p>The module switcher only shows the modules an admin has given you access to. If you only have one module, there's no switcher at all. Admins see all three automatically.</p>
       <ul>
-        <li><b>Finance</b> (navy) — the Cartafella Analytics finance workbook.</li>
-        <li><b>HR / Recruitment</b> (purple) — the HR workbook: requirements, candidates, onboarding, deployments.</li>
+        <li><b>Finance</b> (navy) — P&amp;L, cash flow, receivables, payables, budget and every supporting record.</li>
+        <li><b>HR / Recruitment</b> (purple) — requirements, candidates, onboarding, deployments.</li>
         <li><b>People</b> (green) — Employees directory and Leave management.</li>
       </ul>
 
@@ -66,10 +66,10 @@
       <h2>Change history</h2>
       <p>Click your avatar → <i>Change history</i>. Every cell edit is logged with who, when, old and new value, and an optional note. Filter by module, tab, cell, user or date range. Export a CSV of the filtered range with the <i>CSV</i> button. Records stay forever — nothing is deleted when a user is removed.</p>
 
-      <h2>Import and export</h2>
+      <h2>Download and import</h2>
       <ul>
-        <li><b>Download workbook</b> (avatar menu) — exports the current module as a fresh .xlsx file, preserving formulas, formatting, charts and conditional formatting. The People module isn't a workbook; use each tab's own download button instead.</li>
-        <li><b>Import workbook</b> (avatar menu, editors + admins) — pick an .xlsx file of the same module and the app will detect every changed input cell and preview the diff before saving. Formulas aren't imported (they live in the model); only values.</li>
+        <li><b>Download data</b> (avatar menu) — exports the current module as a file you can keep or share, with its formatting and totals intact. For the People module, use each tab's own download button instead.</li>
+        <li><b>Import data</b> (avatar menu, editors + admins) — pick a file of the same module and the app will detect every changed value and preview the difference before saving. Only values are imported; the module's own calculations re-run on top.</li>
       </ul>
 
       <h2>Keyboard tips</h2>
@@ -86,7 +86,7 @@
     icon: '📊',
     body: `
       <h2>What's in the Finance module</h2>
-      <p>The Finance module mirrors the Cartafella Analytics Finance Dashboard workbook — 22 tabs in total, every formula identical to Excel. The same 87,000 formulas that run in Excel run here, evaluated in your browser.</p>
+      <p>The Finance module gives you the full P&amp;L, cash flow, balance sheet and every supporting record — customers and vendors, receivables and payables, ledger, budget, forecast, loans, assets and payroll — all linked so a change in one place flows through to the dashboards.</p>
 
       <h2>Global filters</h2>
       <p>At the top of the screen, three dropdowns scope the figures shown on multiple tabs at once:</p>
@@ -116,7 +116,7 @@
       <p>Granular day-by-day cash in / cash out with running balance. Useful for spotting short-term liquidity pinches.</p>
 
       <h3>Ledger</h3>
-      <p>The transactional ledger — every entry goes in here. Columns: date, voucher, account, vertical, narration, debit, credit. Trial balance totals are computed live at the bottom. This is the single source of truth for the whole workbook; the other tabs are built on top of it.</p>
+      <p>The transactional ledger — every entry goes in here. Columns: date, voucher, account, vertical, narration, debit, credit. Trial balance totals are computed live at the bottom. This is the single source of truth for the whole module; the other tabs are built on top of it.</p>
 
       <h3>Chart of Accounts</h3>
       <p>The master list of accounts, with code, name, type (Asset / Liability / Income / Expense / Equity), parent group and whether the account is active. Changing an account here affects every ledger lookup.</p>
@@ -140,7 +140,7 @@
       <p>Rolling 12-month forecast, seeded from Budget and adjustable per month. The Dashboard's "year-end projection" tile comes from here.</p>
 
       <h3>Loans &amp; EMIs</h3>
-      <p>Each facility with principal, interest rate, tenure, EMI, outstanding. The amortisation schedule is computed automatically using the PMT function. Changes here flow into Cash Flow.</p>
+      <p>Each facility with principal, interest rate, tenure, EMI, outstanding. The amortisation schedule is computed automatically. Changes here flow into Cash Flow.</p>
 
       <h3>Assets</h3>
       <p>Fixed assets register. Columns: asset code, name, purchase date, cost, depreciation method, rate, accumulated depreciation, book value. Monthly depreciation charge flows into the P&amp;L.</p>
@@ -161,22 +161,19 @@
       <p>Operational metrics beyond pure finance — utilisation %, bench size, average day rate, conversion ratios. Owners and targets are set on this tab.</p>
 
       <h3>Settings</h3>
-      <p>Company name, financial year start, currency, period-type default, vertical list, approved payment methods. Edits here change labels across the whole workbook.</p>
+      <p>Company name, financial year start, currency, period-type default, vertical list, approved payment methods. Edits here change labels across the whole module.</p>
 
       <h3>Input Data</h3>
-      <p>Raw master-data tables used by lookups across the workbook (holidays, tax rates, FX rates). Change a value here and every dependent cell recalculates.</p>
+      <p>Master-data tables used by lookups across the module (holidays, tax rates, FX rates). Change a value here and every dependent figure recalculates.</p>
 
-      <h3>Formulas</h3>
-      <p>Reference tab — documents the key formulas (how gross margin is computed, how the tax working reconciles, etc.). Read-only by convention.</p>
+      <h3>Reference</h3>
+      <p>Documentation tabs — definitions of how key figures are calculated and worked examples. Read-only by convention.</p>
 
-      <h3>Example &amp; Help</h3>
-      <p>Worked examples and tool tips from the original workbook author. Also read-only.</p>
-
-      <h2>Editing cells</h2>
-      <p>If you have <b>editor</b> or <b>admin</b> access to the Finance module, click any white cell to edit it. Press Enter to commit. Grey cells are formula-driven and can't be changed directly — change their inputs instead. Negative numbers may show in red depending on the cell's number format.</p>
+      <h2>Editing values</h2>
+      <p>If you have <b>editor</b> or <b>admin</b> access to the Finance module, click any white cell to edit it. Press Enter to commit. Grey cells are calculated and can't be changed directly — change their inputs instead. Negative numbers may show in red depending on the cell's number format.</p>
 
       <h2>Removing example rows</h2>
-      <p>Editors / admins see <i>Remove example data</i> in the avatar menu. It scans the current module for rows tagged EXAMPLE in the workbook and clears their inputs in one go. Use once, after your own data is in.</p>
+      <p>Editors / admins see <i>Remove example data</i> in the avatar menu. It scans the current module for rows tagged EXAMPLE and clears their inputs in one go. Use once, after your own data is in.</p>
     `
   };
 
@@ -185,7 +182,7 @@
     icon: '👥',
     body: `
       <h2>What's in the HR module</h2>
-      <p>The HR module is a mirror of the HR / Recruitment workbook — ten tabs covering the full pipeline from incoming requirement to active deployment, plus settings and system integration notes. All 41,000 formulas from the Excel source run here identically.</p>
+      <p>The HR module covers the full recruitment pipeline from incoming requirement to active deployment, plus settings and system integration notes. Every stage change and candidate update flows into the dashboard and the activity log as you work.</p>
 
       <h2>The tabs</h2>
 
@@ -256,7 +253,7 @@
     icon: '🏢',
     body: `
       <h2>What's in the People module</h2>
-      <p>People is new — it isn't a workbook. It's a proper employee database and a leave-approval workflow built on top of your Supabase database. HR and admins manage it. Everyone else with access gets to see their own leave on the <i>My leave</i> tab.</p>
+      <p>People is your employee directory and leave-approval workflow. HR and admins manage it. Everyone else with access gets to see their own leave on the <i>My leave</i> tab.</p>
 
       <h2>Employees</h2>
       <p>The company roster. KPI tiles at the top show total employees, Active, On leave and Pre-joining. Columns in the table: Code, Name (with email), Position, Department, Join date, Type pill (Permanent / Fixed-term / Contract / Intern / Outsourced), Status pill, Annual leave balance.</p>
@@ -354,7 +351,7 @@
         <li><b>Leaver</b> — set their employee status to Exited with an exit date, remove their app access.</li>
         <li><b>Access change</b> — admin edits the user row and clicks Save.</li>
         <li><b>Approving leave</b> — check Leave requests at least twice a week.</li>
-        <li><b>Monthly</b> — export each module's workbook as .xlsx and keep a copy for the compliance folder.</li>
+        <li><b>Monthly</b> — download each module and keep a copy for the compliance folder.</li>
       </ul>
 
       <h2>When things go wrong</h2>
@@ -362,10 +359,31 @@
         <li><b>"Saving…" stuck or "Could not save"</b> — check your internet, then click the chip. Usually transient.</li>
         <li><b>User says they can't see a module</b> — Manage users, confirm the chip is ticked, Save, ask them to hard-refresh.</li>
         <li><b>User can't sign up</b> — they don't have an invite, or theirs was revoked. Send a fresh one.</li>
-        <li><b>Imported workbook looks wrong</b> — only input cells (white) are overwritten; formula cells are untouched. Confirm you're importing the right module.</li>
+        <li><b>Imported file looks wrong</b> — only input cells (white) are overwritten; calculated cells are untouched. Confirm you're importing the right module.</li>
       </ul>
     `
   };
+
+  // ─────────────────────────────────────────── visibility
+  // Each section maps to what access a user needs to see it:
+  //  - Getting started: everyone
+  //  - Finance / HR / People: users who have that module (admins always)
+  //  - Admin: admins only
+  function visibleSections(me) {
+    var isAdmin = me && me.role === 'admin';
+    var mods = (me && me.modules) || [];
+    var out = {};
+    Object.keys(SECTIONS).forEach(function (id) {
+      var show = false;
+      if (id === 'getting-started') show = true;
+      else if (id === 'admin') show = isAdmin;
+      else if (id === 'finance') show = isAdmin || mods.indexOf('finance') >= 0;
+      else if (id === 'hr')      show = isAdmin || mods.indexOf('hr')      >= 0;
+      else if (id === 'people')  show = isAdmin || mods.indexOf('hr') >= 0 || mods.indexOf('people') >= 0;
+      if (show) out[id] = SECTIONS[id];
+    });
+    return out;
+  }
 
   // ─────────────────────────────────────────── UI
   var currentTab = 'getting-started';
@@ -375,6 +393,12 @@
   // — e.g. the main content area when the user clicks "User guide".
   function render(container, opts) {
     opts = opts || {};
+    var me = opts.me || null;
+    var sections = visibleSections(me);
+    var sectionIds = Object.keys(sections);
+    // If the remembered tab is no longer visible to this user, fall back to the first one
+    if (sectionIds.indexOf(currentTab) < 0) currentTab = sectionIds[0] || 'getting-started';
+
     container.innerHTML = '';
     container.classList.add('guide-page');
 
@@ -387,17 +411,18 @@
         h('p', { class: 'sub' }, 'Everything you need to know about Cartafella Analytics — Finance, HR / Recruitment and People')
       ]),
       h('div', { class: 'guide-actions' }, [
-        h('button', { class: 'btn primary', onclick: function () { downloadPDF(); } }, '⬇ Download PDF'),
+        h('button', { class: 'btn primary', onclick: function () { downloadPDF(me); } }, '⬇ Download PDF'),
         opts.onBack ? h('button', { class: 'btn ghost', onclick: opts.onBack }, '← Back') : null
       ])
     ]);
     page.appendChild(head);
 
-    // Tab strip — one row of pills, horizontal, scrolls if cramped
+    // Tab strip — one row of pills, horizontal, scrolls if cramped.
+    // Only sections the current user has access to.
     var tabs = h('div', { class: 'guide-tabs' });
     var tabButtons = {};
-    Object.keys(SECTIONS).forEach(function (id) {
-      var s = SECTIONS[id];
+    sectionIds.forEach(function (id) {
+      var s = sections[id];
       var btn = h('button', { type: 'button', class: 'guide-tab' + (currentTab === id ? ' active' : ''),
         onclick: function () { currentTab = id; renderBody(); refreshTabs(); window.scrollTo(0, 0); } },
         [h('span', { class: 'guide-tab-icon' }, s.icon), h('span', { class: 'guide-tab-label' }, s.title)]);
@@ -414,7 +439,8 @@
     // Body area — one article at a time
     var body = h('div', { class: 'guide-body' });
     function renderBody() {
-      body.innerHTML = '<article class="guide-section"><h1>' + SECTIONS[currentTab].title + '</h1>' + SECTIONS[currentTab].body + '</article>';
+      var s = sections[currentTab] || SECTIONS['getting-started'];
+      body.innerHTML = '<article class="guide-section"><h1>' + s.title + '</h1>' + s.body + '</article>';
     }
     renderBody();
     page.appendChild(body);

@@ -122,7 +122,7 @@
       function saveRow(existing, values) {
         var t = book.m.tables[cfg.table];
         var r = existing ? existing._row : firstEmptyRow(book, cfg.table);
-        if (r < 0) { ctx.toast('No empty rows left in this table. Workbook preset limits apply.', 'error'); return; }
+        if (r < 0) { ctx.toast('No empty rows left in this table.', 'error'); return; }
         var changes = [];
         t.cols.forEach(function (name, i) {
           if (!(name in values)) return;
@@ -1082,7 +1082,7 @@
       // find first empty row
       var r = -1;
       for (var i = t.r1; i <= t.r2; i++) { var v = book.getInput(t.sheet, i, t.c1); if (!v) { r = i; break; } }
-      if (r < 0) { ctx.toast('No space to add. Workbook preset limits apply.', 'error'); return; }
+      if (r < 0) { ctx.toast('No space to add.', 'error'); return; }
       var frm = U.Form([{ key: 'value', label: tc.col, required: true }]);
       U.openDrawer({
         title: 'Add ' + tc.title.toLowerCase().replace(/s$/, ''),

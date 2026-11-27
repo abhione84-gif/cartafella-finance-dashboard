@@ -150,7 +150,7 @@
     var wanted = only || ['finance', 'hr'];
     for (var mk of wanted) {
       if (state.models[mk] || !MODULES[mk] || !MODULES[mk].model) continue;
-      $('#loading-text').textContent = 'Loading ' + MODULES[mk].label + ' workbook…';
+      $('#loading-text').textContent = 'Loading ' + MODULES[mk].label + '…';
       var r = await fetch(MODULES[mk].model, { cache: 'no-cache' });
       if (!r.ok) throw new Error('Could not load ' + MODULES[mk].model);
       state.models[mk] = await r.json();
@@ -652,13 +652,13 @@
     });
   }
 
-  // ---------- Export / Import (current module's workbook) ----------
+  // ---------- Export / Import (current module data) ----------
   var BSTYLE = { thin: 'thin', hair: 'hair', medium: 'medium', thick: 'thick', dashed: 'dashed', dotted: 'dotted', double: 'double' };
   function argb(h) { return { argb: 'FF' + h.replace('#', '').toUpperCase() }; }
   async function exportExcel() {
-    if (!window.ExcelJS) { toast('Excel library did not load', 'error'); return; }
+    if (!window.ExcelJS) { toast('Download library did not load', 'error'); return; }
     if (state.module === 'people') { toast('Use the People tabs\' own download buttons.', 'warn'); return; }
-    setStatus('busy', 'Preparing Excel…');
+    setStatus('busy', 'Preparing download…');
     await new Promise(function (r) { setTimeout(r, 40); });
     var m = state.models[state.module], b = bk(), wb = new window.ExcelJS.Workbook(), styleCache = {};
     wb.creator = state.me.email; wb.created = new Date();
@@ -694,7 +694,7 @@
     var name = (CFG.EXPORT_NAME || 'Cartafella-Analytics') + '-' + MODULES[state.module].label.replace(/[^a-zA-Z0-9]+/g, '-') + '-' + new Date().toISOString().slice(0, 10) + '.xlsx';
     download(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), name);
     setStatus('ok', backend.demo ? 'Demo (browser only)' : 'All saved');
-    toast('Excel file downloaded', 'success');
+    toast('File downloaded', 'success');
   }
   function download(blob, name) {
     var a = el('a', { href: URL.createObjectURL(blob), download: name });
@@ -715,7 +715,7 @@
     return v;
   }
   async function importExcel(file) {
-    if (!window.ExcelJS) { toast('Excel library not loaded', 'error'); return; }
+    if (!window.ExcelJS) { toast('Import library not loaded', 'error'); return; }
     if (state.module === 'people') { toast('Switch to Finance or HR before importing.', 'warn'); return; }
     setStatus('busy', 'Reading ' + file.name + '…');
     var wb = new window.ExcelJS.Workbook();
@@ -740,12 +740,12 @@
       }
     });
     setStatus('ok', 'All saved');
-    if (!changes.length) { modal('Import from Excel', '<p>Nothing to import: input cells in <b>' + U.esc(file.name) + '</b> already match.</p>'); return; }
+    if (!changes.length) { modal('Import data', '<p>Nothing to import: input cells in <b>' + U.esc(file.name) + '</b> already match.</p>'); return; }
     var html = '<p>Importing <b>' + U.esc(file.name) + '</b> into <b>' + MODULES[state.module].label + '</b> will change <b>' + changes.length.toLocaleString() + '</b> cells.</p>' +
       '<table style="font-size:12px;margin:10px 0"><tbody>' +
       Object.keys(perSheet).map(function (k) { return '<tr><td style="padding:3px 20px 3px 0">' + U.esc(k) + '</td><td style="text-align:right">' + perSheet[k].toLocaleString() + '</td></tr>'; }).join('') +
       '</tbody></table>';
-    if (!(await modal('Import from Excel', html, [{ label: 'Cancel', value: false }, { label: 'Import', value: true, primary: true }]))) return;
+    if (!(await modal('Import data', html, [{ label: 'Cancel', value: false }, { label: 'Import', value: true, primary: true }]))) return;
     queueChanges(changes, 'Imported from ' + file.name);
     toast('Imported ' + changes.length.toLocaleString() + ' cells', 'success');
   }

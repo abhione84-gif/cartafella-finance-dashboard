@@ -493,7 +493,7 @@
       el('div', { class: 'sub', text: 'How HR connects to Finance (same client IDs, shared contract IDs) and future CRM' })])]));
     var keys = tableRows(book, 'tblKeys');
     container.appendChild(U.Card('Shared keys',
-      U.ReportTable({ columns: ['Example', 'Used in', 'Rule'], rows: keys.map(function (k) { return { label: k.Key, values: [k['Format / example'], k['Used in this workbook'], k.Rule] }; }) })
+      U.ReportTable({ columns: ['Example', 'Used in', 'Rule'], rows: keys.map(function (k) { return { label: k.Key, values: [k['Format / example'], k['Used in'], k.Rule] }; }) })
     ));
     var fm = tableRows(book, 'tblFieldMap');
     container.appendChild(U.Card('Field mapping',
